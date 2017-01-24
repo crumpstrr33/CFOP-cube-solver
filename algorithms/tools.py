@@ -33,6 +33,8 @@ def alg_to_code(alg):
         elif alg[n + 1] == "'":
             if let in ['x', 'y', 'z']:
                 code += let.upper()
+            elif let == 'M':
+                code += let.lower()
             elif let.islower():
                 code += ascii_lowercase[ascii_lowercase.index(let) - 1]
             else:
@@ -41,3 +43,35 @@ def alg_to_code(alg):
             code += let
 
     return code
+
+
+'''
+Reverses the above process
+'''
+def code_to_alg(code):
+    alg = ''
+    dt_alg = 'urflbdMxyzURFLBD'
+    dt_code = '1234567890!@#$%^'
+    ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
+
+    code = np.array(list(code) + ['END'])
+
+    for n, let in enumerate(code):
+        if let == 'END':
+            continue
+
+        if let in dt_code:
+            alg += dt_alg[dt_code.index(let)] + '2'
+        elif let in ['X', 'Y', 'Z']:
+            alg += let.lower() + "'"
+        elif let == 'm':
+            alg += let.upper() + "'"
+        elif let.lower() in ccw_lets:
+            if let.islower():
+                alg += ascii_lowercase[ascii_lowercase.index(let) + 1] + "'"
+            else:
+                alg += ascii_uppercase[ascii_uppercase.index(let) + 1] + "'"
+        else:
+            alg += let
+
+    return alg
