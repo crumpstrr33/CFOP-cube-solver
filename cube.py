@@ -40,12 +40,8 @@ class Cube():
             self.perm[side] = ''.join(deque_side)
 
 
-    def turn_up(self, cw=False, ccw=False, dt=False, fs=False):
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
-
-        turn = cw + 2 * dt - ccw
+    def turn_up(self, ttype, fs=False):
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -54,17 +50,17 @@ class Cube():
             new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
 
         self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=turn)
+        self._rotate(0, length=2 * turn)
 
 
-    def turn_left(self, cw=False, ccw=False, dt=False, fs=False):
+    def turn_left(self, ttype, fs=False):
         self.rotate_z()
 
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
 
-        turn = cw + 2 * dt - ccw
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -78,14 +74,14 @@ class Cube():
         self.rotate_z(cw=False)
 
 
-    def turn_front(self, cw=False, ccw=False, dt=False, fs=False):
+    def turn_front(self, ttype, fs=False):
         self.rotate_x()
 
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
 
-        turn = cw + 2 * dt - ccw
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -99,14 +95,14 @@ class Cube():
         self.rotate_x(cw=False)
 
 
-    def turn_right(self, cw=False, ccw=False, dt=False, fs=False):
+    def turn_right(self, ttype, fs=False):
         self.rotate_z(cw=False)
 
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
 
-        turn = cw + 2 * dt - ccw
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -120,14 +116,14 @@ class Cube():
         self.rotate_z()
 
 
-    def turn_back(self, cw=False, ccw=False, dt=False, fs=False):
+    def turn_back(self, ttype, fs=False):
         self.rotate_x(cw=False)
 
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
 
-        turn = cw + 2 * dt - ccw
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -140,14 +136,14 @@ class Cube():
 
         self.rotate_x()
 
-    def turn_down(self, cw=False, ccw=False, dt=False, fs=False):
+    def turn_down(self, ttype, fs=False):
         self.rotate_x(dt=True)
 
-        if cw + ccw + dt != 1:
-            print('cw = %s, ccw = %s and dt = %s. Only one can have a truth value.'
-                  % (cw, ccw, dt))
+        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
 
-        turn = cw + 2 * dt - ccw
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
