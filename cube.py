@@ -41,6 +41,17 @@ class Cube():
 
 
     def turn_up(self, ttype, fs=False):
+        '''
+        Turns the up face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
@@ -54,6 +65,17 @@ class Cube():
 
 
     def turn_left(self, ttype, fs=False):
+        '''
+        Turns the left face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         self.rotate_z()
 
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
@@ -75,6 +97,17 @@ class Cube():
 
 
     def turn_front(self, ttype, fs=False):
+        '''
+        Turns the front face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         self.rotate_x()
 
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
@@ -96,6 +129,17 @@ class Cube():
 
 
     def turn_right(self, ttype, fs=False):
+        '''
+        Turns the right face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         self.rotate_z(cw=False)
 
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
@@ -117,6 +161,17 @@ class Cube():
 
 
     def turn_back(self, ttype, fs=False):
+        '''
+        Turns the back face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         self.rotate_x(cw=False)
 
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
@@ -137,6 +192,17 @@ class Cube():
         self.rotate_x()
 
     def turn_down(self, ttype, fs=False):
+        '''
+        Turns the down face of the cube depending on the args.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        fs - (optional) Whether to perform a fat slice (i.e. a turn of two
+             layers of the cube rather than one)
+        '''
         self.rotate_x(dt=True)
 
         turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
@@ -158,6 +224,15 @@ class Cube():
 
 
     def rotate_x(self, cw=True, dt=False):
+        '''
+        Rotates the cube with an x move. This is equivalent to the R turn.
+        
+        Parameters:
+        cw - (optional) Whether to do a clockwise rotation or, if cw=False, a
+             counterclockwise rotation
+        dt - (optional) If dt=True, the cube will have a double turn rotation
+             applied.
+        '''
         if dt:
             self.perm = self.perm[[5, 1, 4, 3, 2, 0]]
             self._rotate(1, 2, 3, 4, length=4)
@@ -174,6 +249,15 @@ class Cube():
 
 
     def rotate_y(self, cw=True, dt=False):
+        '''
+        Rotates the cube with an y move. This is equivalent to the U turn.
+        
+        Parameters:
+        cw - (optional) Whether to do a clockwise rotation or, if cw=False, a
+             counterclockwise rotation
+        dt - (optional) If dt=True, the cube will have a double turn rotation
+             applied.
+        '''
         if dt:
             self.perm = self.perm[[0, 3, 4, 1, 2, 5]]
             self._rotate(0, 5, length=4)
@@ -188,6 +272,15 @@ class Cube():
 
 
     def rotate_z(self, cw=True, dt=False):
+        '''
+        Rotates the cube with an z move. This is equivalent to the F turn.
+        
+        Parameters:
+        cw - (optional) Whether to do a clockwise rotation or, if cw=False, a
+             counterclockwise rotation
+        dt - (optional) If dt=True, the cube will have a double turn rotation
+             applied.
+        '''
         if dt:
             self.perm = self.perm[[5, 3, 2, 1, 4, 0]]
             self._rotate(0, 1, 2, 3, 4, 5, length=4)
