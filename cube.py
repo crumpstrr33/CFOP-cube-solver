@@ -1,12 +1,34 @@
 import numpy as np
 from collections import deque
 
+
 class Cube():
+    '''
+    Cube class which creates an object representing a 3x3 Rubik's cube in some
+    specific permutation as described below.
+
+    The permutation of the cube is stored in the form of a six element numpy
+    array in order of faces: [up, left, front, right, back, down].
+
+    Each element is an 8 char string representing the 8 noncenter stickers
+    going clockwise starting at the upperleft corner. (To those wondering,
+    this orientation is inspired by the memo techniques for BLD solving
+    using OP corners and M2 edges, probably the best beginner BLD method)
+
+    Also, the center pieces follows the list perm like: [white, orange,
+    green, red, blue, yellow]. (Again, for those curious people, this comes
+    from the official WCA scrambling rules which is white on up face and
+    green on front face)
+
+    Parameters:
+    perm - (optional) the permutation of the cube as described above. If no
+           perm is given, a solved cube is assumed which is given as:
+           ['wwwwwwww', 'oooooooo', 'gggggggg', 'rrrrrrrr', 'bbbbbbbb', 'yyyyyyyy']
+    '''
     def __init__(self, perm=0):
         if perm == 0:
             self.perm = np.array(['wwwwwwww', 'oooooooo', 'gggggggg',
                          'rrrrrrrr', 'bbbbbbbb', 'yyyyyyyy'])
-
         else:
             self.perm = np.array(perm)
 
@@ -88,13 +110,13 @@ class Cube():
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
-        print(self.perm)
+
         for n, side in enumerate(perm_temp):
             new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
 
         self.perm[[1, 2, 3, 4]] = new_perm
         self._rotate(0, length=2 * turn)
-        print(self.perm)
+
         self.rotate_z()
 
 
