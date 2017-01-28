@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
-
+from algorithms.misc import turn_dict
+from algorithms.tools import alg_to_code
 
 class Cube():
     '''
@@ -234,7 +235,7 @@ class Cube():
         self.rotate_x(dt=True)
 
 
-    def turn_xmiddle(self, ttype):
+    def turn_middle(self, ttype, axis='m'):
         '''
         Turns the middle slice on the z axis of the cube depending on ttype.
         
@@ -244,18 +245,19 @@ class Cube():
                 use 'dt' or 2. The number represents the number of clockwise
                 turns that will be applied
         '''
-        if ttype in [1, 'cw']:
-            self.turn_right('cw')
-            self.turn_left('ccw')
-            self.rotate_x(cw=False)
-        elif ttype in [-1, 'ccw']:
-            self.turn_right('ccw')
-            self.turn_left('cw')
-            self.rotate_x()
-        elif ttype in [2, 'dt']:
-            self.turn_right('dt')
-            self.turn_left('dt')
-            self.rotate_x(dt=True)
+        if axis == 'm':
+            if ttype in [1, 'cw']:
+                self.turn_right('cw')
+                self.turn_left('ccw')
+                self.rotate_x(cw=False)
+            elif ttype in [-1, 'ccw']:
+                self.turn_right('ccw')
+                self.turn_left('cw')
+                self.rotate_x()
+            elif ttype in [2, 'dt']:
+                self.turn_right('dt')
+                self.turn_left('dt')
+                self.rotate_x(dt=True)
 
 
     def rotate_x(self, cw=True, dt=False):
@@ -329,73 +331,20 @@ class Cube():
             self._rotate(4, length=2)
 
 
-    def apply_alg(self, alg):
+    def apply_alg(self, alg, alg_input=True):
+        '''
+        Applies the algorithm alg to the cube. The alg can either be written
+        as a cubing algorithm or as the code syntax.
+
+        Parameters:
+        alg - Algorithm to apply to the cube
+        alg_input - (optional) If True, will assume alg is written in cubing
+                    notation. If False, will assume alg is written as the 
+                    coding syntax
+        '''
+        if alg_input:
+            alg = alg_to_code(alg)
+
         for turn in alg:
-            if turn == 'U':   self.turn_up(1)
-            elif turn == 'T': self.turn_up(-1)
-            elif turn == '!': self.turn_up(2)
-            elif turn == 'u': self.turn_up(1, fs=True)
-            elif turn == 't': self.turn_up(-1, fs=True)
-            elif turn == '1': self.turn_up(2, fs=True)
-
-            elif turn == 'L': self.turn_left(1)
-            elif turn == 'K': self.turn_left(-1)
-            elif turn == '@': self.turn_left(2)
-            elif turn == 'l': self.turn_left(1, fs=True)
-            elif turn == 'k': self.turn_left(-1, fs=True)
-            elif turn == '2': self.turn_left(2, fs=True)
-
-            elif turn == 'F': self.turn_front(1)
-            elif turn == 'E': self.turn_front(-1)
-            elif turn == '#': self.turn_front(2)
-            elif turn == 'f': self.turn_front(1, fs=True)
-            elif turn == 'e': self.turn_front(-1, fs=True)
-            elif turn == '3': self.turn_front(2, fs=True)
-
-            elif turn == 'R': self.turn_right(1)
-            elif turn == 'Q': self.turn_right(-1)
-            elif turn == '$': self.turn_right(2)
-            elif turn == 'r': self.turn_right(1, fs=True)
-            elif turn == 'q': self.turn_right(-1, fs=True)
-            elif turn == '4': self.turn_right(2, fs=True)
-
-            elif turn == 'B': self.turn_back(1)
-            elif turn == 'A': self.turn_back(-1)
-            elif turn == '%': self.turn_back(2)
-            elif turn == 'b': self.turn_back(1, fs=True)
-            elif turn == 'a': self.turn_back(-1, fs=True)
-            elif turn == '5': self.turn_back(2, fs=True)
-
-            elif turn == 'D': self.turn_down(1)
-            elif turn == 'C': self.turn_down(-1)
-            elif turn == '^': self.turn_down(2)
-            elif turn == 'd': self.turn_down(1, fs=True)
-            elif turn == 'c': self.turn_down(-1, fs=True)
-            elif turn == '6': self.turn_down(2, fs=True)
-
-            elif turn == 'M': self.turn_xmiddle(1)
-            elif turn == 'm': self.turn_xmiddle(-1)
-            elif turn == '7': self.turn_xmiddle(2)
-
-            elif turn == 'x': self.rotate_x()
-            elif turn == 'X': self.rotate_x(cw=False)
-            elif turn == '8': self.rotate_x(dt=True)
-
-            elif turn == 'y': self.rotate_y()
-            elif turn == 'Y': self.rotate_y(cw=False)
-            elif turn == '9': self.rotate_y(dt=True)
-
-            elif turn == 'z': self.rotate_z()
-            elif turn == 'Z': self.rotate_z(cw=False)
-            elif turn == '0': self.rotate_z(dt=True)
-
-
-
-
-
-
-
-
-
-
-
+            method = turn_dict[turn]
+            getattr(self, method[0])(method[1], method[2])
