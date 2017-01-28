@@ -52,7 +52,12 @@ class Cube():
         fs - (optional) Whether to perform a fat slice (i.e. a turn of two
              layers of the cube rather than one)
         '''
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
+        if turn not in [-1, 1, 2]:
+            print('ttype = %s, turn amount is %d which is not allowed.'
+                  % (ttype, turn))
+
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
         new_perm = []
@@ -78,7 +83,8 @@ class Cube():
         '''
         self.rotate_z()
 
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
         if turn not in [-1, 1, 2]:
             print('ttype = %s, turn amount is %d which is not allowed.'
                   % (ttype, turn))
@@ -110,7 +116,8 @@ class Cube():
         '''
         self.rotate_x()
 
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
         if turn not in [-1, 1, 2]:
             print('ttype = %s, turn amount is %d which is not allowed.'
                   % (ttype, turn))
@@ -142,7 +149,8 @@ class Cube():
         '''
         self.rotate_z(cw=False)
 
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
         if turn not in [-1, 1, 2]:
             print('ttype = %s, turn amount is %d which is not allowed.'
                   % (ttype, turn))
@@ -174,7 +182,8 @@ class Cube():
         '''
         self.rotate_x(cw=False)
 
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
         if turn not in [-1, 1, 2]:
             print('ttype = %s, turn amount is %d which is not allowed.'
                   % (ttype, turn))
@@ -205,13 +214,15 @@ class Cube():
         '''
         self.rotate_x(dt=True)
 
-        turn = (ttype == 'cw') - (ttype == 'ccw') + 2 * (ttype == 'dt')
+        ## Check if correct ttype
+        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
         if turn not in [-1, 1, 2]:
             print('ttype = %s, turn amount is %d which is not allowed.'
                   % (ttype, turn))
 
         layer = 3 + 2*fs
         perm_temp = self.perm[[1, 2, 3, 4]]
+
         new_perm = []
 
         for n, side in enumerate(perm_temp):
@@ -221,6 +232,30 @@ class Cube():
         self._rotate(0, length=2 * turn)
 
         self.rotate_x(dt=True)
+
+
+    def turn_xmiddle(self, ttype):
+        '''
+        Turns the middle slice on the z axis of the cube depending on ttype.
+        
+        Parameters:
+        ttype - The turn type. For a clockwise turn, use 'cw' or 1. For a 
+                counterclockwise turn, use 'ccw' or -1. And for a double turn,
+                use 'dt' or 2. The number represents the number of clockwise
+                turns that will be applied
+        '''
+        if ttype in [1, 'cw']:
+            self.turn_right('cw')
+            self.turn_left('ccw')
+            self.rotate_x(cw=False)
+        elif ttype in [-1, 'ccw']:
+            self.turn_right('ccw')
+            self.turn_left('cw')
+            self.rotate_x()
+        elif ttype in [2, 'dt']:
+            self.turn_right('dt')
+            self.turn_left('dt')
+            self.rotate_x(dt=True)
 
 
     def rotate_x(self, cw=True, dt=False):
@@ -292,3 +327,75 @@ class Cube():
             self.perm = self.perm[[3, 0, 2, 5, 4, 1]]
             self._rotate(0, 1, 2, 3, 5, length=-2)
             self._rotate(4, length=2)
+
+
+    def apply_alg(self, alg):
+        for turn in alg:
+            if turn == 'U':   self.turn_up(1)
+            elif turn == 'T': self.turn_up(-1)
+            elif turn == '!': self.turn_up(2)
+            elif turn == 'u': self.turn_up(1, fs=True)
+            elif turn == 't': self.turn_up(-1, fs=True)
+            elif turn == '1': self.turn_up(2, fs=True)
+
+            elif turn == 'L': self.turn_left(1)
+            elif turn == 'K': self.turn_left(-1)
+            elif turn == '@': self.turn_left(2)
+            elif turn == 'l': self.turn_left(1, fs=True)
+            elif turn == 'k': self.turn_left(-1, fs=True)
+            elif turn == '2': self.turn_left(2, fs=True)
+
+            elif turn == 'F': self.turn_front(1)
+            elif turn == 'E': self.turn_front(-1)
+            elif turn == '#': self.turn_front(2)
+            elif turn == 'f': self.turn_front(1, fs=True)
+            elif turn == 'e': self.turn_front(-1, fs=True)
+            elif turn == '3': self.turn_front(2, fs=True)
+
+            elif turn == 'R': self.turn_right(1)
+            elif turn == 'Q': self.turn_right(-1)
+            elif turn == '$': self.turn_right(2)
+            elif turn == 'r': self.turn_right(1, fs=True)
+            elif turn == 'q': self.turn_right(-1, fs=True)
+            elif turn == '4': self.turn_right(2, fs=True)
+
+            elif turn == 'B': self.turn_back(1)
+            elif turn == 'A': self.turn_back(-1)
+            elif turn == '%': self.turn_back(2)
+            elif turn == 'b': self.turn_back(1, fs=True)
+            elif turn == 'a': self.turn_back(-1, fs=True)
+            elif turn == '5': self.turn_back(2, fs=True)
+
+            elif turn == 'D': self.turn_down(1)
+            elif turn == 'C': self.turn_down(-1)
+            elif turn == '^': self.turn_down(2)
+            elif turn == 'd': self.turn_down(1, fs=True)
+            elif turn == 'c': self.turn_down(-1, fs=True)
+            elif turn == '6': self.turn_down(2, fs=True)
+
+            elif turn == 'M': self.turn_xmiddle(1)
+            elif turn == 'm': self.turn_xmiddle(-1)
+            elif turn == '7': self.turn_xmiddle(2)
+
+            elif turn == 'x': self.rotate_x()
+            elif turn == 'X': self.rotate_x(cw=False)
+            elif turn == '8': self.rotate_x(dt=True)
+
+            elif turn == 'y': self.rotate_y()
+            elif turn == 'Y': self.rotate_y(cw=False)
+            elif turn == '9': self.rotate_y(dt=True)
+
+            elif turn == 'z': self.rotate_z()
+            elif turn == 'Z': self.rotate_z(cw=False)
+            elif turn == '0': self.rotate_z(dt=True)
+
+
+
+
+
+
+
+
+
+
+
