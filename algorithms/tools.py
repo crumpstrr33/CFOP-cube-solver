@@ -2,11 +2,12 @@ import numpy as np
 from string import ascii_lowercase, ascii_uppercase
 
 
-'''
-Will convert from regular algorithm syntax to the syntax used in code.
-Code syntax is such that each character of the string is one move
-(rather than r' being two characters but one move). The conversion works as
-follows:
+def alg_to_code(alg):
+    '''
+    Will convert from regular algorithm syntax to the syntax used in code.
+    Code syntax is such that each character of the string is one move
+    (rather than r' being two characters but one move). The conversion works as
+    follows:
     1) All fat turns stay as lowercase
     2) All regular turns stay as uppercase
     3) Counterclockwise turns are the preceeding letter (e.g. u --> t)
@@ -16,10 +17,12 @@ follows:
        turns
     5) Rotations are capatlized for counterclockwise turns and 8, 9, 0 for
        double x, y and z rotations respectively
-'''
-def alg_to_code(alg):
+
+    Parameters:
+    alg - The cubing algorithm to convet to code syntax
+    '''
     code = ''
-    dt_alg = 'urflbdMxyzURFLBD'
+    dt_alg = 'urflbdMxyzULFRBD'
     dt_code = '1234567890!@#$%^'
 
     alg = np.array(list(alg) + ['END'])
@@ -45,12 +48,16 @@ def alg_to_code(alg):
     return code
 
 
-'''
-Reverses the above process
-'''
+
 def code_to_alg(code):
+    '''
+    Does the reverse of alg_to_code. See alg_to_code for details.
+
+    Parameters:
+    code - The code syntax to convert to cubing algorithm
+    '''
     alg = ''
-    dt_alg = 'urflbdMxyzURFLBD'
+    dt_alg = 'urflbdMxyzULFRBD'
     dt_code = '1234567890!@#$%^'
     ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
 
