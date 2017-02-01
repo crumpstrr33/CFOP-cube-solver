@@ -1,7 +1,7 @@
 """
 Algorithms for 1 Look PLL used from http://badmephisto.com/pll.php
 """
-from tools import alg_to_code
+from algorithmstools import alg_to_code
 
 '''
 1/18 chance of occuring

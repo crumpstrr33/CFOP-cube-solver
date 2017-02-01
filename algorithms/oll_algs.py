@@ -2,7 +2,7 @@
 Algorithms for 1 Look OLL used from http://badmephisto.com/oll.php.
 Names from https://www.speedsolving.com/wiki/index.php/OLL.
 """
-from tools import alg_to_code
+from algorithms.tools import alg_to_code
 
 '''
 No edges flipped correctly
