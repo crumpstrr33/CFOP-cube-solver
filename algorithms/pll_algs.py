@@ -1,5 +1,5 @@
 """
-Algorithms used from http://badmephisto.com/pll.php
+Algorithms for 1 Look PLL used from http://badmephisto.com/pll.php
 """
 from tools import alg_to_code
 
@@ -12,7 +12,7 @@ ua_perm = alg_to_code("R2URUR'U'R'U'R'UR'")
 ub_perm = alg_to_code("RU'RURURU'R'U'R2")
 ja_perm = alg_to_code("R'UL'U2RU'R'U2RLU'")
 jb_perm = alg_to_code("RUR'F'RUR'U'R'FR2U'R'U'")
-ra_perm = alg_to_code("LU2L'U2LF'L'U'LULFL2UY2RU2R'U2RB'R'U'RURBR2U")
+ra_perm = alg_to_code("LU2L'U2LF'L'U'LULFL2Uy2RU2R'U2RB'R'U'RURBR2U")
 rb_perm = alg_to_code("R'U2RU2R'FRUR'U'R'F'R2U'")
 t_perm  = alg_to_code("RUR'U'R'FR2U'R'U'RUR'F'")
 y_perm  = alg_to_code("FRU'R'U'RUR'F'RUR'U'R'FRF'")
