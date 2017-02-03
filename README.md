@@ -11,4 +11,4 @@ This is a Python project to create a program to solve a 3x3 Rubik's cube via the
 - OLL and PLL algorithms now reside in `oll_algs.py` and `pll_algs.py` respectively
 - A Cube class has been created which holds the permutation of the cube as in a six element list
 - A method to apply an algorithm (either written as a cubing algorithm or in the code syntax) can now be applied to `Cube()`
-- OLL cases can now be solved with the `OLLCases` class in `oll.py`. There may be errors since I haven't test every one of the 57 cases.
+- OLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. There may be errors since I haven't test every one of the 57 cases.
