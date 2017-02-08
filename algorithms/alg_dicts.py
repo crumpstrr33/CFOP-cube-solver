@@ -20,23 +20,6 @@ turn_dict = {'U' : [u, 1, False], 'T' : [u, -1, False], '!' : [u, 2, False],
              'y' : [y, True, False], 'Y' : [y, False, False], '9' : [y, False, True],
              'z' : [z, True, False], 'Z' : [z, False, False], '0' : [z, False, True]}
 
-
-oll_ditt =  {'01010101' : 'flip_tshirt',        '01100011' : 'a_moustache',
-             '10010001' : 'squeegee_agun',      '10011100' : 'fishsalad_mountedfish',
-             '01010111' : 'a_sune',             '00010011' : 'gun_asqueegee',
-             '00110100' : 'upstairs_lightning', '00011100' : 'leftysquare_rightysquare',
-             '01001001' : 'a_kite',             '10110100' : 'aspotcham_dalmation', 
-             '01111000' : 'couch_apee',         '00011011' : 'city_cingheadlights',  
-             '10100000' : 'bunny_crown',        '00001000' : 'a_mouse',
-             '00000000' : 'blank_zamboni',      '01111101' : 'chameleon_headlights', 
-             '00111001' : 'key_suitup',         '10000101' : 'alightning_downstairs',
-             '00111100' : 'acouch_pee',         '01101001' : 'spotcham_adalmation',
-             '01000001' : 'a_breakneck_a_fryingpan_rfsqueezy_rbsqueezy',
-             '01000100' : 'highway_ricecooker_streetlights_ant',
-             '10001000' : 'slash', '01110111' : 'diagonal', '00110011' : 'fung',
-             '10011001' : 'afung', '10101010' : 'checkers', '10111110' : 'stealth',
-             '10111011' : 'brick'}
-
 oll_dict = {'10210001' : 'case_01', '10212112' : 'case_02', '20102010' : 'case_03',
             '11200001' : 'case_04', '10211011' : 'case_05', '00001121' : 'case_06',
             '21111020' : 'case_07', '11101001' : 'case_08', '00202121' : 'case_09',
@@ -54,7 +37,13 @@ oll_dict = {'10210001' : 'case_01', '10212112' : 'case_02', '20102010' : 'case_0
             '00101111' : 'case_43', '01000001' : 'case_44', '10010021' : 'case_45',
             '20012021' : 'case_46', '10110011' : 'case_47', '00102000' : 'case_48',
             '11201120' : 'case_49', '21100001' : 'case_50', '21110000' : 'case_51',
-            '10012001' : 'case_52', '20110100' : 'case_53', '20110100' : 'case_54',
+            '10012001' : 'case_52', '20111120' : 'case_53', '20110100' : 'case_54',
             '01201001' : 'case_55', '10110110' : 'case_56', '20202101' : 'case_57'}
 
-pll_dict = {'31020123' : 'aa_perm', '02310123' : 'ab_perm'}
+pll_dict = {'300113021232' : 'aa_perm', '001212320133' : 'ab_perm', '010121202333' : 'ua_perm', 
+            '020101212333' : 'ub_perm', '330111223002' : 'ja_perm', '000122311233' : 'jb_perm',
+            '320101223032' : 'ra_perm', '300121213032' : 'rb_perm', '020112301233' : 't_perm' ,
+            '230113022301' : 'y_perm' , '200113032321' : 'v_perm' , '021210102333' : 'f_perm' ,
+            '323011230102' : 'ga_perm', '131203022310' : 'gb_perm', '121203012330' : 'gc_perm',
+            '313031220102' : 'gd_perm', '030121212303' : 'z_perm' , '103012321230' : 'e_perm' ,
+            '020131202313' : 'h_perm' , '200133022311' : 'na_perm', '002331220113' : 'nb_perm'}
