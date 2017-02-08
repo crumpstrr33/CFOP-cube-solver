@@ -1,7 +1,8 @@
 import numpy as np
 from collections import deque
-from algorithms.misc import turn_dict
+from algorithms.alg_dicts import turn_dict
 from algorithms.tools import alg_to_code
+
 
 class Cube():
     '''
@@ -26,12 +27,42 @@ class Cube():
            perm is given, a solved cube is assumed which is given as:
            ['wwwwwwww', 'oooooooo', 'gggggggg', 'rrrrrrrr', 'bbbbbbbb', 'yyyyyyyy']
     '''
-    def __init__(self, perm=0):
+    def __init__(self, perm=0, centers=0):
+        if centers == 0:
+            self.centers = np.array(['w','o', 'g', 'r', 'b', 'y'])
+        else:
+            ## Check if there's a right number of centers
+            if len(centers) != 6:
+                raise Exception('There were %d centers given but need 6.' % len(centers))
+
+            ## Check if the center colors make sense
+            for center in centers:
+                if centers.count(center) != 1:
+                    raise Exception('Found %d centers of color:' % centers.count(center), center)
+
+            self.centers = centers
+
         if perm == 0:
             self.perm = np.array(['wwwwwwww', 'oooooooo', 'gggggggg',
-                         'rrrrrrrr', 'bbbbbbbb', 'yyyyyyyy'])
+                                  'rrrrrrrr', 'bbbbbbbb', 'yyyyyyyy'])
         else:
-            self.perm = np.array(perm)
+            perm = np.array(perm)
+
+            ## Check if the permuation has 6 sides
+            if len(perm) != 6:
+                raise Exception('There were %d sides given but need 6.' % len(perm))
+
+            ## Check if each side has 8 stickers
+            for side in perm:
+                if len(side) != 8:
+                    raise Exception('Side', side, 'has %d stickers but need 8.' % len(side))
+
+            ## Check if there are 8 stickers for each color
+            for center in centers:
+                if ''.join(perm).count(center) != 8:
+                    raise Exception('Found %d stickers for color:' % ''.join(perm).count(center), center)
+
+            self.perm = perm
 
 
     def _rotate(self, *sides, length):
@@ -83,23 +114,7 @@ class Cube():
              layers of the cube rather than one)
         '''
         self.rotate_z()
-
-        ## Check if correct ttype
-        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
-        if turn not in [-1, 1, 2]:
-            print('ttype = %s, turn amount is %d which is not allowed.'
-                  % (ttype, turn))
-
-        layer = 3 + 2*fs
-        perm_temp = self.perm[[1, 2, 3, 4]]
-        new_perm = []
-
-        for n, side in enumerate(perm_temp):
-            new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
-
-        self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=2 * turn)
-
+        self.turn_up(ttype, fs)
         self.rotate_z(cw=False)
 
 
@@ -116,23 +131,7 @@ class Cube():
              layers of the cube rather than one)
         '''
         self.rotate_x()
-
-        ## Check if correct ttype
-        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
-        if turn not in [-1, 1, 2]:
-            print('ttype = %s, turn amount is %d which is not allowed.'
-                  % (ttype, turn))
-
-        layer = 3 + 2*fs
-        perm_temp = self.perm[[1, 2, 3, 4]]
-        new_perm = []
-
-        for n, side in enumerate(perm_temp):
-            new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
-
-        self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=2 * turn)
-
+        self.turn_up(ttype, fs)
         self.rotate_x(cw=False)
 
 
@@ -149,23 +148,7 @@ class Cube():
              layers of the cube rather than one)
         '''
         self.rotate_z(cw=False)
-
-        ## Check if correct ttype
-        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
-        if turn not in [-1, 1, 2]:
-            print('ttype = %s, turn amount is %d which is not allowed.'
-                  % (ttype, turn))
-
-        layer = 3 + 2*fs
-        perm_temp = self.perm[[1, 2, 3, 4]]
-        new_perm = []
-
-        for n, side in enumerate(perm_temp):
-            new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
-
-        self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=2 * turn)
-
+        self.turn_up(ttype, fs)
         self.rotate_z()
 
 
@@ -182,23 +165,7 @@ class Cube():
              layers of the cube rather than one)
         '''
         self.rotate_x(cw=False)
-
-        ## Check if correct ttype
-        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
-        if turn not in [-1, 1, 2]:
-            print('ttype = %s, turn amount is %d which is not allowed.'
-                  % (ttype, turn))
-
-        layer = 3 + 2*fs
-        perm_temp = self.perm[[1, 2, 3, 4]]
-        new_perm = []
-
-        for n, side in enumerate(perm_temp):
-            new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
-
-        self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=2 * turn)
-
+        self.turn_up(ttype, fs)
         self.rotate_x()
 
     def turn_down(self, ttype, fs=False):
@@ -214,24 +181,7 @@ class Cube():
              layers of the cube rather than one)
         '''
         self.rotate_x(dt=True)
-
-        ## Check if correct ttype
-        turn = (ttype in [1, 'cw']) - (ttype in [-1, 'ccw']) + 2 * (ttype in [2, 'dt'])
-        if turn not in [-1, 1, 2]:
-            print('ttype = %s, turn amount is %d which is not allowed.'
-                  % (ttype, turn))
-
-        layer = 3 + 2*fs
-        perm_temp = self.perm[[1, 2, 3, 4]]
-
-        new_perm = []
-
-        for n, side in enumerate(perm_temp):
-            new_perm.append(perm_temp[(n + turn) % 4][:layer] + perm_temp[n][layer:])
-
-        self.perm[[1, 2, 3, 4]] = new_perm
-        self._rotate(0, length=2 * turn)
-
+        self.turn_up(ttype, fs)
         self.rotate_x(dt=True)
 
 
@@ -331,7 +281,7 @@ class Cube():
             self._rotate(4, length=2)
 
 
-    def apply_alg(self, alg, alg_input=True):
+    def apply_alg(self, alg, alg_input=False):
         '''
         Applies the algorithm alg to the cube. The alg can either be written
         as a cubing algorithm or as the code syntax.
