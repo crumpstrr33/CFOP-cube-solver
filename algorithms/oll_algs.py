@@ -16,7 +16,7 @@ case_06 = alg_to_code("fL'U'LUf'")              # AntiP
 case_07 = alg_to_code("F'L'U'LUL'U'LUF")        # Antibreakneck
 case_08 = alg_to_code("FRUR'U'F'UFRUR'U'F'")    # Upstairs
 case_09 = alg_to_code("yrUR'UR'FRF'RU2r'")      # Downstairs
-case_10 = alg_to_code("fRUR'U'f'UFRUR'U'F'")    # Moue
+case_10 = alg_to_code("fRUR'U'f'UFRUR'U'F'")    # Mouse
 case_11 = alg_to_code("fRUR'U'f'U'FRUR'U'F'")   # Antimouse
 case_12 = alg_to_code("FRUR'U'F'fRUR'U'f'")     # Zamboni
 case_13 = alg_to_code("RU2R2U'R2U'R2U2R")       # Tshirt
@@ -80,3 +80,8 @@ case_54 = alg_to_code("RUR'U'RU'R'F'U'FRUR'")   # Spotted Chameleon
 case_55 = alg_to_code("R2UR'B'RU'R2URBR'")      # Antispotted Chameleon
 case_56 = alg_to_code("RUR'U'R'FR2UR'U'F'")     # Kite
 case_57 = alg_to_code("RUR'yR'FRU'R'F'R")       # Antikite
+
+'''
+SOLVED
+'''
+SOLVED = ''

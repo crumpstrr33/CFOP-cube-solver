@@ -1,7 +1,7 @@
 """
 Algorithms for 1 Look PLL used from http://badmephisto.com/pll.php
 """
-from algorithmstools import alg_to_code
+from algorithms.tools import alg_to_code
 
 '''
 1/18 chance of occuring
@@ -35,3 +35,4 @@ e_perm  = alg_to_code("x'RU'R'DRUR'D'RUR'DRU'R'D'")
 h_perm  = alg_to_code("M2UM2U2M2UM2")
 na_perm = alg_to_code("LU'RU2L'UR'LU'RU2L'UR'U")
 nb_perm = alg_to_code("R'UL'U2RU'LR'UL'U2RU'LU'")
+SOLVED  = ''
