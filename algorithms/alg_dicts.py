@@ -1,7 +1,8 @@
 u, l, f = 'turn_up', 'turn_left', 'turn_front'
 r, b, d = 'turn_right', 'turn_back', 'turn_down'
-m = 'turn_xmiddle'
+m = 'turn_middle'
 x, y, z = 'rotate_x', 'rotate_y', 'rotate_z'
+
 
 turn_dict = {'U' : [u, 1, False], 'T' : [u, -1, False], '!' : [u, 2, False],
              'L' : [l, 1, False], 'K' : [l, -1, False], '@' : [l, 2, False],
@@ -19,6 +20,7 @@ turn_dict = {'U' : [u, 1, False], 'T' : [u, -1, False], '!' : [u, 2, False],
              'x' : [x, True, False], 'X' : [x, False, False], '8' : [x, False, True],
              'y' : [y, True, False], 'Y' : [y, False, False], '9' : [y, False, True],
              'z' : [z, True, False], 'Z' : [z, False, False], '0' : [z, False, True]}
+
 
 oll_dict = {'10210001' : 'case_01', '10212112' : 'case_02', '20102010' : 'case_03',
             '11200001' : 'case_04', '10211011' : 'case_05', '00001121' : 'case_06',
@@ -38,7 +40,9 @@ oll_dict = {'10210001' : 'case_01', '10212112' : 'case_02', '20102010' : 'case_0
             '20012021' : 'case_46', '10110011' : 'case_47', '00102000' : 'case_48',
             '11201120' : 'case_49', '21100001' : 'case_50', '21110000' : 'case_51',
             '10012001' : 'case_52', '20111120' : 'case_53', '20110100' : 'case_54',
-            '01201001' : 'case_55', '10110110' : 'case_56', '20202101' : 'case_57'}
+            '01201001' : 'case_55', '10110110' : 'case_56', '20202101' : 'case_57',
+            '00000000' : 'SOLVED'}
+
 
 pll_dict = {'300113021232' : 'aa_perm', '001212320133' : 'ab_perm', '010121202333' : 'ua_perm', 
             '020101212333' : 'ub_perm', '330111223002' : 'ja_perm', '000122311233' : 'jb_perm',
@@ -46,4 +50,6 @@ pll_dict = {'300113021232' : 'aa_perm', '001212320133' : 'ab_perm', '01012120233
             '230113022301' : 'y_perm' , '200113032321' : 'v_perm' , '021210102333' : 'f_perm' ,
             '323011230102' : 'ga_perm', '131203022310' : 'gb_perm', '121203012330' : 'gc_perm',
             '313031220102' : 'gd_perm', '030121212303' : 'z_perm' , '103012321230' : 'e_perm' ,
-            '020131202313' : 'h_perm' , '200133022311' : 'na_perm', '002331220113' : 'nb_perm'}
+            '020131202313' : 'h_perm' , '200133022311' : 'na_perm', '002331220113' : 'nb_perm',
+            '000111222333' : 'SOLVED'}
+
