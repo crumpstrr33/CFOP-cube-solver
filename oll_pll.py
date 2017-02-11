@@ -1,6 +1,6 @@
 from collections import deque
-import numpy as np
 from algorithms.alg_dicts import oll_dict, pll_dict
+from algorithms.tools import opposite_color
 
 class OLLCases():
     '''
@@ -23,62 +23,59 @@ class OLLCases():
     perm - The permutation of a cube that is at OLL
     '''
     def __init__(self, perm):
-       self.tf_stickers = self._tf_hash(perm)
+        self.tf_stickers = self._tf_hash(perm)
 
-       try:
-           self.oll, self.rotation = self._find_oll()
-       except TypeError:
-           raise Exception('Could not find the matching hash for %s' % self.tf_stickers +
-                           'in oll_dict computed from permutation:', list(perm))
+        try:
+            self.oll, self.rotation = self._find_oll()
+        except TypeError:
+            raise Exception('Could not find the matching hash for %s' % self.tf_stickers +
+                            'in oll_dict computed from permutation:', list(perm))
 
 
     def _tf_hash(self, perm):
         '''
         Turns the permutation into a unique identifier for each OLL
         '''
+        c = opposite_color(perm[-1][0])
+
         ## The correct stickers, looking for where the top face sticker is
-        tf_stickers  = str((perm[0][0] + perm[1][0] + perm[4][2]).index('w'))
-        tf_stickers += str((perm[0][7] + perm[1][1]).index('w'))
-        tf_stickers += str((perm[0][6] + perm[2][0] + perm[1][2]).index('w'))
-        tf_stickers += str((perm[0][5] + perm[2][1]).index('w'))
-        tf_stickers += str((perm[0][4] + perm[3][0] + perm[2][2]).index('w'))
-        tf_stickers += str((perm[0][3] + perm[3][1]).index('w'))
-        tf_stickers += str((perm[0][2] + perm[4][0] + perm[3][2]).index('w'))
-        tf_stickers += str((perm[0][1] + perm[4][1]).index('w'))
+        tf_stickers  = str((perm[0][0] + perm[1][0] + perm[4][2]).index(c))
+        tf_stickers += str((perm[0][7] + perm[1][1]).index(c))
+        tf_stickers += str((perm[0][6] + perm[2][0] + perm[1][2]).index(c))
+        tf_stickers += str((perm[0][5] + perm[2][1]).index(c))
+        tf_stickers += str((perm[0][4] + perm[3][0] + perm[2][2]).index(c))
+        tf_stickers += str((perm[0][3] + perm[3][1]).index(c))
+        tf_stickers += str((perm[0][2] + perm[4][0] + perm[3][2]).index(c))
+        tf_stickers += str((perm[0][1] + perm[4][1]).index(c))
 
         return tf_stickers
 
 
     def _rotate(self, s, n):
         '''
-        Rotates a string (in this case, it's rotating corner to corner and edge
-        to edge, so rotation to the string are done by factors of 2).
-        '''
-        if (n % 2) != 0:
-            raise Exception('An incorrect rotation amount (n) was entered: %d.' % n +
-                            ' It must be a multiple of 2.')
+        Rotates a string by an amount n.
 
+        Parameters:
+        s - String to be rotated
+        n - Amount to rotate the string by
+        '''
         deque_s = deque(s)
         deque_s.rotate(-n)
-        self.tf_stickers = ''.join(deque_s)
+        deque_s = ''.join(deque_s)
+
+        return deque_s
 
 
     def _find_oll(self):
         '''
-        Finds the correct OLL needed to solve the OLL case
+        Finds the correct OLL needed to solve the case along with the correct
+        initial up face turn (if any).
         '''
-        ## Checks against each OLL in the dict
-        for oll in oll_dict:
-            rotation = 0
+        for i in range(4):
+            tf_stickers_rotated = self._rotate(self.tf_stickers, 2 * i)
 
-            ## Rotates the OLL to check if roation was wrong
-            for _ in range(4):
-                if  self.tf_stickers == oll:
-                    return oll_dict[oll], rotation
-                else:
-                    ## If rotation was wrong, try again
-                    self._rotate(self.tf_stickers, 2)
-                    rotation += 1
+            if tf_stickers_rotated in oll_dict:
+                return oll_dict[tf_stickers_rotated], i
 
 
 class PLLCases():
@@ -102,23 +99,27 @@ class PLLCases():
     perm - The permutation of a cube that is at PLL
     '''
     def __init__(self, perm):
-        self.ll_stickers = self._ll_hash(perm)
-
+        self.ll_stickers = ''.join(perm[1:5].astype('|S3').astype(str))
+        self.centers = ''.join([side[-1] for side in perm[1:5]])
         try:
-            self.pll, self.rotation = self._find_pll()
+            self.pll, self.rotation_b, self.rotation_a = self._find_pll()
         except TypeError:
             raise Exception('Could not find the matching hash for %s' % self.ll_stickers +
-                           'in pll_dict computed from permutation:', list(perm))
+                            ' in pll_dict computed from permutation:', list(perm))
 
 
-    def _ll_hash(self, perm):
+    def _ll_hash(self, ll_stickers):
         '''
-        Turns the permutation into a unique identifier for each PLL
-        '''
-        ll_stickers = ''.join(perm[1:5].astype('|S3').astype(str))
-        centers = [side[-1] for side in perm[1:5]]
+        Turns a string of stickers (the last layer stickers of which there are
+        12) into a unique identifier to figure out which PLL to use by
+        replacing the color with the side it should be on (left, front, right,
+        back or 0, 1, 2, 3 respectively).
 
-        for n, color in enumerate(centers):
+        Parameters:
+        ll_stickers - The string of 12 stickers to be turned into a string
+                      of numbers
+        '''
+        for n, color in enumerate(self.centers):
             ll_stickers = ll_stickers.replace(color, str(n))
 
         return ll_stickers
@@ -126,35 +127,51 @@ class PLLCases():
 
     def _rotate(self, s, n):
         '''
-        Rotates a string and converts it to an int corresponding to its correct
-        side (in this case, it's rotating the last layer of the side
-        faces, so it rotates by a factor of 3).
+        Rotates a string by an amount n.
+
+        Parameters:
+        s - String to be rotated
+        n - Amount to rotate the string by
         '''
-        if (n % 3) != 0:
-            raise Exception('An incorrect rotation amount (n) was entered: %d.' % n +
-                            ' It must a multiple of 3.')
+        if n == 0:
+            return s
 
         deque_s = deque(s)
         deque_s.rotate(-n)
-        deque_s = np.array(deque_s).astype(int)
-        deque_s = ''.join(((deque_s + int(n / 3)) % 4).astype(str))
+        deque_s = ''.join(deque_s)
 
-        self.ll_stickers = deque_s
+        return deque_s
+
+
+    def _add(self, s, n):
+        '''
+        For a string of digits, adds n to each digit.
+
+        Parameters:
+        s - String to which n will be added
+        n - The amount to add to each digit of the string
+        '''
+        if n == 0:
+            return s
+
+        s_plus_n = [str((int(x) + n) % 4) for x in s]
+        return ''.join(s_plus_n)
 
 
     def _find_pll(self):
         '''
-        Finds the correct PLL needed to solve the PLL case
+        Finds the PLL based on the 12 character string for the stickers of
+        the last layer and returns this PLL allow with the relevant rotations.
         '''
-        ## Checks against each PLL in the dict
-        for pll in pll_dict:
-            rotation = 0
+        ## Check against the 4 rotations of the top layer (AUF before PLL)
+        for i in range(4):
+            ll_rotated = self._rotate(self.ll_stickers, 3 * i)
+            ll_code = self._ll_hash(ll_rotated)
 
-            ## Rotates the PLL to check if roation was wrong
-            for _ in range(4):
-                if self.ll_stickers == pll:
-                    return pll_dict[pll], rotation
-                else:
-                    ## If rotation was wrong, try again
-                    self._rotate(self.ll_stickers, 3)
-                    rotation += 1
+            ## Check against the moves of the top layer (AUF after PLL)
+            for j in range(4):
+                added_ll_code = self._add(ll_code, j)
+
+                ## Return correct PLL and the rotations done
+                if added_ll_code in pll_dict:
+                    return pll_dict[added_ll_code], i, j

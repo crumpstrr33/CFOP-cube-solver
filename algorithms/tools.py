@@ -22,17 +22,24 @@ def alg_to_code(alg):
     alg - The cubing algorithm to convet to code syntax
     '''
     code = ''
-    dt_alg = 'urflbdMxyzULFRBD'
-    dt_code = '1234567890!@#$%^'
+    ele_alg = 'urflbdMxyzULFRBD'
+    ele_code = '1234567890!@#$%^'
 
+    ## Checks if syntax is correct
+    for turn in alg:
+        if turn in ele_code.replace('2', ''):
+            raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
+
+    ## Add END element so the index of n+1 doesn't throw an error
     alg = np.array(list(alg) + ['END'])
 
     for n, let in enumerate(alg):
+        ## Don't do anything for these since they are modifiers and not actual turns
         if let in ["'", '2', 'END']:
             continue
 
         if alg[n + 1] == '2':
-            code += dt_code[dt_alg.index(let)]
+            code += ele_code[ele_alg.index(let)]
         elif alg[n + 1] == "'":
             if let in ['x', 'y', 'z']:
                 code += let.upper()
@@ -57,18 +64,24 @@ def code_to_alg(code):
     code - The code syntax to convert to cubing algorithm
     '''
     alg = ''
-    dt_alg = 'urflbdMxyzULFRBD'
-    dt_code = '1234567890!@#$%^'
+    ele_alg = 'urflbdMxyzULFRBD'
+    ele_code = '1234567890!@#$%^'
     ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
 
+    ## Checks if syntax is correct
+    for turn in alg:
+        if turn in ["'", '2']:
+            raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
+
+    ## Add END element so the index of n+1 doesn't throw an error
     code = np.array(list(code) + ['END'])
 
     for n, let in enumerate(code):
         if let == 'END':
             continue
 
-        if let in dt_code:
-            alg += dt_alg[dt_code.index(let)] + '2'
+        if let in ele_code:
+            alg += ele_alg[ele_code.index(let)] + '2'
         elif let in ['X', 'Y', 'Z']:
             alg += let.lower() + "'"
         elif let == 'm':
@@ -82,3 +95,24 @@ def code_to_alg(code):
             alg += let
 
     return alg
+
+
+def opposite_color(color):
+    '''
+    Gives the opposite color based on cube orientation.
+    
+    Parameters:
+    color - the color whose opposite color is found
+    '''
+    if color == 'w':
+        return 'y'
+    elif color == 'y':
+        return 'w'
+    elif color == 'g':
+        return 'b'
+    elif color == 'b':
+        return 'g'
+    elif color == 'o':
+        return 'r'
+    elif color == 'r':
+        return 'o'
