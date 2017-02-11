@@ -1,7 +1,5 @@
 from cube import Cube
-from algorithms.tools import code_to_alg
 from oll_pll import OLLCases, PLLCases
-from algorithms.alg_dicts import oll_dict, pll_dict
 from algorithms import oll_algs, pll_algs
 
 
@@ -104,8 +102,9 @@ class Solver(Cube):
 
         self.pll = pll.pll
         self.pll_algorithm = getattr(pll_algs, pll.pll)
-        self.apply_alg(['', 'U', '!', 'T'][pll.rotation])
+        self.apply_alg(['', 'U', '!', 'T'][pll.rotation_b])
         self.apply_alg(self.pll_algorithm)
+        self.apply_alg(['', 'U', '!', 'T'][pll.rotation_a])
 
 
     def solve_it(self):
