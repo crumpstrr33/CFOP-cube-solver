@@ -1,6 +1,7 @@
 from cube import Cube
 from oll_pll import OLLCases, PLLCases
-from algorithms.alg_config_reader import oll_code, pll_code
+from algorithms import oll_algs, pll_algs
+
 
 class Solver(Cube):
     '''
@@ -86,11 +87,9 @@ class Solver(Cube):
         '''
         oll = OLLCases(self.perm)
 
-        self.oll_name = oll.oll
-        self.oll_rotation = oll.rotation
-        self.oll_algorithm = oll_code[self.oll_name]
-
-        self.apply_alg(['', 'U', '!', 'T'][self.oll_rotation])
+        self.oll = oll.oll
+        self.oll_algorithm = getattr(oll_algs, oll.oll)
+        self.apply_alg(['', 'U', '!', 'T'][oll.rotation])
         self.apply_alg(self.oll_algorithm)
 
 
@@ -101,14 +100,11 @@ class Solver(Cube):
         '''
         pll = PLLCases(self.perm)
 
-        self.pll_name = pll.pll
-        self.pll_rotation_b = pll.rotation_b
-        self.pll_rotation_a = pll.rotation_a
-        self.pll_algorithm = pll_code[self.pll_name]
-
-        self.apply_alg(['', 'U', '!', 'T'][self.pll_rotation_b])
+        self.pll = pll.pll
+        self.pll_algorithm = getattr(pll_algs, pll.pll)
+        self.apply_alg(['', 'U', '!', 'T'][pll.rotation_b])
         self.apply_alg(self.pll_algorithm)
-        self.apply_alg(['', 'U', '!', 'T'][self.pll_rotation_a])
+        self.apply_alg(['', 'U', '!', 'T'][pll.rotation_a])
 
 
     def solve_it(self):
