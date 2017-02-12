@@ -7,9 +7,10 @@ This is a Python project to create a program to solve a 3x3 Rubik's cube via the
 4. PLL (Permutation Last Layer): The final step where the permutation of the correctly orientated pieces is solved such that they are all placed in their correct spots without affecting their orientation thus solving the cube.
 
 ### Current Progress
-- Syntax for algorithms has been implemented
-- OLL and PLL algorithms now reside in `oll_algs.py` and `pll_algs.py` respectively
-- A Cube class has been created which holds the permutation of the cube as in a six element list
-- A method to apply an algorithm (either written as a cubing algorithm or in the code syntax) can now be applied to `Cube()`
-- OLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. There may be errors since I haven't test every one of the 57 cases.
+- Syntax for algorithms has been implemented.
+- OLL and PLL algorithms now reside in `oll_algs.py` and `pll_algs.py` respectively.
+- A Cube class has been created which holds the permutation of the cube as in a six element list.
+- A method to apply an algorithm (either written as a cubing algorithm or in the code syntax) can now be applied to `Cube`.
+- OLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. There may be errors since I haven't test every one of the 57. cases.
 - PLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. Similar to `OLLCases`.
+- By using the `Solver` class, the cube can be solved from starting at OLL. This will be automatic by using the `find_step` method of the Solver class but for now that's unnecessary. 
