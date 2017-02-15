@@ -22,7 +22,7 @@ def alg_to_code(alg):
     alg - The cubing algorithm to convet to code syntax
     '''
     code = ''
-    ele_alg = 'urflbdMxyzULFRBD'
+    ele_alg = 'ulfrbdMxyzULFRBD'
     ele_code = '1234567890!@#$%^'
 
     ## Checks if syntax is correct
@@ -64,7 +64,7 @@ def code_to_alg(code):
     code - The code syntax to convert to cubing algorithm
     '''
     alg = ''
-    ele_alg = 'urflbdMxyzULFRBD'
+    ele_alg = 'ulfrbdMxyzULFRBD'
     ele_code = '1234567890!@#$%^'
     ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
 
@@ -97,22 +97,32 @@ def code_to_alg(code):
     return alg
 
 
-def opposite_color(color):
+def opposite(corf, which_opposite):
     '''
-    Gives the opposite color based on cube orientation.
+    Gives the opposite color or face based of the cube.
     
     Parameters:
-    color - the color whose opposite color is found
+    corf - The color or face whose opposite is to be found
+    which_opposite - Either 'colors' or 'faces' to choose which to find
     '''
-    if color == 'w':
-        return 'y'
-    elif color == 'y':
-        return 'w'
-    elif color == 'g':
-        return 'b'
-    elif color == 'b':
-        return 'g'
-    elif color == 'o':
-        return 'r'
-    elif color == 'r':
-        return 'o'
+    if which_opposite == 'colors':
+        colors = ['w', 'y', 'g', 'b', 'r', 'o']
+        opposite_colors = ['y', 'w', 'b', 'g', 'o', 'r']
+        return opposite_colors[colors.index(corf)]
+    elif which_opposite == 'faces':
+        faces = ['u', 'd', 'r', 'l', 'f', 'b']
+        opposite_faces = ['d', 'u', 'l', 'r', 'b', 'f']
+        return opposite_faces[faces.index(corf)]
+
+
+def face_to_rotation(face, dl):
+    faces = ['u', 'd', 'r', 'l', 'f', 'b']
+
+    if dl:
+        rotation = ['y', 'y', 'x', 'x', 'z', 'z']
+        direction = [1, -1, 1, -1, 1, -1]
+        return rotation[faces.index(face)], direction[faces.index(face)]
+    else:
+        rotation = ['', 'x', 'z', 'z', 'x', 'x']
+        direction = [2, 2, -1, 1, 1, -1]
+        return rotation[faces.index(face)], direction[faces.index(face)]
