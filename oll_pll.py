@@ -1,8 +1,9 @@
 from collections import deque
 from algorithms.alg_dicts import oll_dict, pll_dict
-from algorithms.tools import opposite_color
+from algorithms.tools import opposite
 
-class OLLCases():
+
+class OLLCases:
     '''
     This class handles the OLL cases. A permutation is is given then the correct
     OLL is found using the unique identifiers in oll_dict. This oll (written as
@@ -36,7 +37,7 @@ class OLLCases():
         '''
         Turns the permutation into a unique identifier for each OLL
         '''
-        c = opposite_color(perm[-1][0])
+        c = opposite(perm[-1][0], 'colors')
 
         ## The correct stickers, looking for where the top face sticker is
         tf_stickers  = str((perm[0][0] + perm[1][0] + perm[4][2]).index(c))
@@ -59,11 +60,11 @@ class OLLCases():
         s - String to be rotated
         n - Amount to rotate the string by
         '''
-        deque_s = deque(s)
-        deque_s.rotate(-n)
-        deque_s = ''.join(deque_s)
+        if n == 0:
+            return s
 
-        return deque_s
+        rotated_s = s[-n:] + s[:-n]
+        return rotated_s
 
 
     def _find_oll(self):
@@ -78,7 +79,7 @@ class OLLCases():
                 return oll_dict[tf_stickers_rotated], i
 
 
-class PLLCases():
+class PLLCases:
     '''
     This class handles the PLL cases. A permutation is is given then the correct
     PLL is found using the unique identifiers in pll_dict. This PLL (written as
@@ -136,11 +137,8 @@ class PLLCases():
         if n == 0:
             return s
 
-        deque_s = deque(s)
-        deque_s.rotate(-n)
-        deque_s = ''.join(deque_s)
-
-        return deque_s
+        rotated_s = s[-n:] + s[:-n]
+        return rotated_s
 
 
     def _add(self, s, n):

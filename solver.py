@@ -90,6 +90,7 @@ class Solver(Cube):
         self.oll_rotation = oll.rotation
         self.oll_algorithm = oll_code[self.oll_name]
 
+        ## Rotate cube then apply OLL
         self.apply_alg(['', 'U', '!', 'T'][self.oll_rotation])
         self.apply_alg(self.oll_algorithm)
 
@@ -106,6 +107,7 @@ class Solver(Cube):
         self.pll_rotation_a = pll.rotation_a
         self.pll_algorithm = pll_code[self.pll_name]
 
+        ## Rotate cube, apply PLL then apply final AUF
         self.apply_alg(['', 'U', '!', 'T'][self.pll_rotation_b])
         self.apply_alg(self.pll_algorithm)
         self.apply_alg(['', 'U', '!', 'T'][self.pll_rotation_a])
