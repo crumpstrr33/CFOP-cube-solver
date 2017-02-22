@@ -33,12 +33,3 @@ To denote specific turns on the cube and to represent algorithm clearly a syntax
 ### Other terms
 - AUF - Stands for Adjust Up Face. This is the adjustment of the up face for preparation of OLL or PLL since rotations of the cube are very costly in time. It is faster to turn the up face, do an algorithm and turn the up face back
 - Trigger - A short move sequence that appears in many different situations and algorithms. You will often see parentheses or square brackets used in algorithms as a way of denoting different triggers. The most popular trigger is probably the sexy move: (R U R' U'). 
-
-## Current Progress
-- Syntax for algorithms has been implemented.
-- OLL and PLL algorithms now reside in `oll_algs.py` and `pll_algs.py` respectively.
-- A Cube class has been created which holds the permutation of the cube as in a six element list.
-- A method to apply an algorithm (either written as a cubing algorithm or in the code syntax) can now be applied to `Cube`.
-- OLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. There may be errors since I haven't test every one of the 57. cases.
-- PLL cases can now be solved with the `OLLCases` class in `oll_pll.py`. Similar to `OLLCases`.
-- By using the `Solver` class, the cube can be solved from starting at OLL. This will be automatic by using the `find_step` method of the Solver class but for now that's unnecessary. 
