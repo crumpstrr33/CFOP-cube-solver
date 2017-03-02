@@ -34,7 +34,7 @@ turn_dict = {
 'M' : ['cw', 'm'], 'm' : ['ccw', 'm'], '7' : ['dt', 'm'],
 
 ## Double layer turns
-'u' : ['cw', 'u', True], 't' : ['ccw', 'u', True], '1' : ['dt,' 'u', True],
+'u' : ['cw', 'u', True], 't' : ['ccw', 'u', True], '1' : ['dt', 'u', True],
 'l' : ['cw', 'l', True], 'k' : ['ccw', 'l', True], '2' : ['dt', 'l', True], 
 'f' : ['cw', 'f', True], 'e' : ['ccw', 'f', True], '3' : ['dt', 'f', True],
 'r' : ['cw', 'r', True], 'q' : ['ccw', 'r', True], '4' : ['dt', 'r', True],
