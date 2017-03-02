@@ -4,6 +4,7 @@ from datetime import datetime as dt
 from solver import Solver
 import algorithms.tools as tools
 
+
 def test_turns():
     print('Checking every turning move:')
     print('----------------------------')
@@ -36,7 +37,7 @@ def test_rotate():
     print('Checking every rotation move:')
     print('-----------------------------')
 
-    ## Done with follow algorithm on U white and F green:
+    ## Done with following algorithm on U white and F green:
     ##          F2 L2 D' B2 D F2 L2 D2 U2 B' U L' F U2 R' D' R2 B' D'
     initial_perm= ['gobowrowb', 'ogbgoygwg', 'yrobgywww', 'wgrorrbby', 'ywwybygbo', 'rgrbyryor']
 
@@ -74,11 +75,11 @@ def test_translate():
     print('SUCCESS')
 
 
-
 def main():
     test_turns()
     test_rotate()
     test_translate()
+
 
 if __name__ == "__main__":
     t0 = dt.now()
