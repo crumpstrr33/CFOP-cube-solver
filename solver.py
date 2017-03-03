@@ -45,11 +45,14 @@ class Solver(Cube):
 
 
     def solve_cross(self):
+        '''
+        Solves for the cross on the Down face.
+        '''
         cross = Cross(self.perm)
 
         self.cross_color = cross.cross_color
         self.cross_alg = cross.alg
-
+        print(code_to_alg(self.cross_alg))
         self.apply_alg(self.cross_alg)
 
 

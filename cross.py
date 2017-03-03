@@ -3,39 +3,48 @@ from algorithms.alg_dicts import turn_dict, param_dict
 LEN_WEIGHT = 4
 LEN_ALG_TO_RESET = 4
 
-
 class Cross:
+    '''
+    This class solves the cross on the Down face for a given permutation.
+
+    It solves it using an A* pathfinding algorithm where each new node is 
+    a CrossEdges object. Once a node with length LEN_ALG_TO_RESET is found,
+    the algorithm empties open_set and restarts with this node as the
+    initializer.
+
+    Parameters:
+    perm - The full permutation of the cube in its dict form
+    '''
     def __init__(self, perm):
         self.perm = perm
         self.cross_color = ''.join(self.perm[(0, -1, 0)])
 
-        self.init_dict = self._cross_edges_color()
-        self.init_perm = self._cross_edges_coord()
+        #self.init_dict = self._cross_edges_color()
+        #self.init_perm = self._cross_edges_coord()
+        self.init_dict, self.init_perm = self._cross_edges()
         self.solved_dict = self._solved_edges()
 
         self.alg = self._find_path()
         
 
-    def _cross_edges_color(self):
+    def _cross_edges(self):
         '''
-        Finds the current position of the cross edges by color
+        Finds the current position of the cross edges by color and coordinates
         '''
-        cross_edge_dict = {}
+        cross_edge_color, cross_edge_coord = {}, {}
+
         for coord, colors in self.perm.items():
+            ## Look at edge pieces with cross_color sticker color
             if coord.count(0) == 1 and self.cross_color in colors:
+                ## Dict with (k, v) = (non-white color, coordinate)
                 edge_color = ''.join(''.join(colors).split(self.cross_color))
-                cross_edge_dict[edge_color] = coord
+                cross_edge_color[edge_color] = coord
 
-        return cross_edge_dict
+                ## Dict with (k, v) = (coordinate, 3-element color list)
+                cross_edge_coord[coord] = colors
 
+        return cross_edge_color, cross_edge_coord
 
-    def _cross_edges_coord(self):
-        cross_edge_dict = {}
-        for coord, colors in self.perm.items():
-            if coord.count(0) == 1 and self.cross_color in colors:
-                cross_edge_dict[coord] = colors
-
-        return cross_edge_dict
 
     def _solved_edges(self):
         '''
@@ -49,6 +58,7 @@ class Cross:
                 if coord[1] == 0:
                     center_dict[''.join(color)] = coord
 
+        ## Dict with (k, v) = (non-white color, coordinate)
         solved_dict = {}
         for color, coord in center_dict.items():
             solved_dict[color] = (coord[0], -1, coord[2])
@@ -57,8 +67,12 @@ class Cross:
 
 
     def _find_path(self):
-        ce = CrossEdges(self.init_perm, '', LEN_WEIGHT, self.solved_dict, self.cross_color)
+        '''
+        A* pathfinding algorithm to solve for the cube's cross.
+        '''
+        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color)
 
+        ## Use double layer U turns instead of D turns. More effective.
         turn_space = 'UT!ut1LK@FE#RQ$BA%'
         open_set = [ce]
         closed_set_perms = []
@@ -76,7 +90,8 @@ class Cross:
             if current.alg != '':
                 latest_turn = turn_space.index(current.alg[-1])
                 forbidden_moves = latest_turn - (latest_turn % 3)
-                turn_space_current = turn_space[:forbidden_moves] + turn_space[forbidden_moves + 3:]
+                turn_space_current = turn_space[:forbidden_moves] + \
+                                     turn_space[forbidden_moves + 3:]
             else:
                 turn_space_current = turn_space
     
@@ -86,56 +101,89 @@ class Cross:
     
             ## Return if perm is equal to solved perm and undo double layer U turns
             if current.h_cost == 0:
-                dl_turns = (current.alg.count("u") - current.alg.count("t") + 2 * current.alg.count("1")) % 4
+                dl_turns = (current.alg.count("u") -
+                            current.alg.count("t") +
+                        2 * current.alg.count("1")) % 4
                 current.alg += ['', 't', '1', 'u'][dl_turns]
                 return current.alg
     
             for turn in turn_space_current:
-                ce = CrossEdges(current.apply_turn(turn), current.alg + turn, current.len_weight,
+                ce = CrossEdges(current._apply_turn(turn), current.alg + turn,
                                 self.solved_dict, self.cross_color)
                 if ce.edge_perm in closed_set_perms:
                     continue
 
                 open_set.append(ce)
 
-## NEEDED CONSTANTS:
-## cross_color
-## solved_dict
-
 
 class CrossEdges:
-    def __init__(self, edge_perm, alg, len_weight, solved_dict, cross_color):
-        ## Constants
-        self.len_weight = len_weight
+    '''
+    The class representing a node in the A* algorithm.
+
+    The metric from the intial state is defined as the sum of the absolute
+    value of the difference of each of the three coordinates. And the metric
+    from the solved state is the length of the algorithm multiplied by some
+    weight.
+
+    A higher weight places more importance on finding a shorter algorithm at
+    the cost of time while a lower weight does the opposite.
+
+    The sum of these two metrics is considered when deciding which node to 
+    investigate next.
+
+    Moves are applied to the cube like usual, but only the four cross edges
+    are moved since the permuation of the other cubies is irrelevant.
+
+    Parameters:
+    edge_perm - The permutation of just the four cross edges in dict form
+    alg - The alg used to obtain this current edge_perm from the initial perm
+          of the cube
+    solved_dict - The color-first dict of the permutation of the edges if they
+                  were solved
+    cross_color - The color of the Down face (i.e. of the cross being solved)
+    '''
+    def __init__(self, edge_perm, alg, solved_dict, cross_color):
         self.solved_dict = solved_dict
         self.cross_color = cross_color
 
         self.edge_perm = edge_perm
         self.alg = alg
         self.flip_penalty = self._bad_flipped_edges()
-        self.g_cost = self.len_weight * len(self.alg)
+        self.g_cost = LEN_WEIGHT * len(self.alg)
         self.h_cost = self._metric_to_solved() + self.flip_penalty
 
 
     @property
     def f_cost(self):
+        '''
+        Total cost. Metric to determine next best move.
+        '''
         return self.h_cost + self.g_cost
 
 
     @property
     def cross_edges(self):
+        '''
+        Cross edge dict by color.
+        '''
         cross_edge_dict = {}
         for coord, colors in self.edge_perm.items():
+            ## Dict with (k, v) = (non-white color, coordinate)
             cross_edge_dict[''.join(''.join(colors).split(self.cross_color))] = coord
 
         return cross_edge_dict
 
 
     def _bad_flipped_edges(self):
+        '''
+        Counts number of edge pieces that are wrongly flipped.
+        '''
         bad_flip = 0
 
         for coord, colors in self.edge_perm.items():
+            ## Can only be wrongly flipped if on Down or Up face
             if coord[1] != 0:
+                ## But white sticker isn't on Down or Up face
                 if colors[0] == 'w' or colors[2] == 'w':
                     bad_flip += 1
 
@@ -143,6 +191,9 @@ class CrossEdges:
 
 
     def _metric_to_solved(self):
+        '''
+        Metric as described in CrossEdges class description.
+        '''
         tot_distance = 0
 
         for color, coord in self.solved_dict.items():
@@ -152,7 +203,12 @@ class CrossEdges:
         return tot_distance
 
 
-    def turn_rotate(self, ttype, side, dl=False):
+    def _turn_rotate(self, ttype, side, dl=False):
+        '''
+        Applies a turn to the 4 cubies analgous to the Cube class method. Here,
+        a new dict is returned (with the 4 cubies' new coordinates) instead of
+        updating current perm.        
+        '''
         ## Get the right parameters for the cubie rotation
         p = param_dict[ttype][side]
         new_coords = {}
@@ -175,5 +231,8 @@ class CrossEdges:
         return new_coords
 
 
-    def apply_turn(self, turn):
-        return self.turn_rotate(*turn_dict[turn])
+    def _apply_turn(self, turn):
+        '''
+        Analgous to Cube class method except only works for one turn at a time.
+        '''
+        return self._turn_rotate(*turn_dict[turn])
