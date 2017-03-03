@@ -1,4 +1,5 @@
 from cube import Cube
+from cross import Cross
 
 class Solver(Cube):
     '''
@@ -44,7 +45,12 @@ class Solver(Cube):
 
 
     def solve_cross(self):
-        pass
+        cross = Cross(self.perm)
+
+        self.cross_color = cross.cross_color
+        self.cross_alg = cross.alg
+
+        self.apply_alg(self.cross_alg)
 
 
     def solve_f2l(self):
@@ -61,7 +67,7 @@ class Solver(Cube):
 
     def solve_it(self):
         '''
-        The current step is found and the appropriate is then taken.
+        The current step is found and the appropriate method is called.
         '''
         self.find_step()
         if self.step == 'cross':
