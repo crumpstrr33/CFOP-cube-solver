@@ -35,13 +35,55 @@ class Solver(Cube):
 
     def find_step(self):
         '''
-        Finds which step the solve is currently at. The cross step is the first
-        step. The F2L step occurs once a cross has been established. This step
-        is divided into substeps of how many F2L pairs have been inserted. If
-        the first two layers are solved but the top layer is not oriented, then
-        it is at OLL. Then if it is oriented, then it is at PLL.
+        Finds the correct step that the Solver is at based on it's relation to
+        a solved cube.
         '''
-        pass
+        up_face_color = ''.join(self.perm[(0, 1, 0)])
+        front_face_color = ''.join(self.perm[(0, 0, 1)])
+        solved_cube = Cube()
+
+        ## Rotate correct top face
+        rotation_xz = {'b': 'X', 'g': 'x', 'o': 'z',
+                       'r': 'Z', 'w': '', 'y': '8'}[up_face_color]
+        solved_cube.apply_alg(rotation_xz)
+
+        ## Rotate correct front face
+        for i in range(3):
+            if ''.join(solved_cube.perm[(0, 0, 1)]) == front_face_color:
+                break
+            solved_cube.apply_alg('y')
+
+        cross_edges = 0
+        f2l_edges_and_corners = 0
+        oll_correct = 0
+        pll_correct = 0
+
+        for coord, color in self.perm.items():
+            if coord[1] == -1 and coord.count(0) == 1:
+                if color == solved_cube.perm[coord]:
+                    cross_edges += 1
+            elif coord[1] != 1 and coord.count(0) != 2:
+                if color == solved_cube.perm[coord]:
+                    f2l_edges_and_corners += 1
+            elif coord[1] == 1 and coord.count(0) != 2:
+                if color == solved_cube.perm[coord]:
+                    pll_correct += 1
+                if color[1] == solved_cube.perm[coord][1]:
+                    oll_correct += 1
+
+        if cross_edges == 4:
+            if f2l_edges_and_corners == 8:
+                if oll_correct == 8:
+                    if pll_correct == 8:
+                        self.step = 'solved'
+                    else:
+                        self.step = 'pll'
+                else:
+                    self.step = 'oll'
+            else:
+                self.step = 'f2l'
+        else:
+            self.step = 'cross'
 
 
     def solve_cross(self):
@@ -52,7 +94,7 @@ class Solver(Cube):
 
         self.cross_color = cross.cross_color
         self.cross_alg = cross.alg
-        print(code_to_alg(self.cross_alg))
+
         self.apply_alg(self.cross_alg)
 
 
