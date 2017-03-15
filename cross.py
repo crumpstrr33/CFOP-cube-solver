@@ -1,7 +1,8 @@
 from algorithms.alg_dicts import turn_dict, param_dict
 
-LEN_WEIGHT = 4
+LEN_WEIGHT = 3
 LEN_ALG_TO_RESET = 4
+NUM_OBJ_TO_NEXT_STEP = 20
 
 class Cross:
     '''
@@ -19,13 +20,12 @@ class Cross:
         self.perm = perm
         self.cross_color = ''.join(self.perm[(0, -1, 0)])
 
-        #self.init_dict = self._cross_edges_color()
-        #self.init_perm = self._cross_edges_coord()
         self.init_dict, self.init_perm = self._cross_edges()
         self.solved_dict = self._solved_edges()
 
+
         self.alg = self._find_path()
-        
+
 
     def _cross_edges(self):
         '''
@@ -70,47 +70,67 @@ class Cross:
         '''
         A* pathfinding algorithm to solve for the cube's cross.
         '''
-        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color)
+        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color, '')
 
         ## Use double layer U turns instead of D turns. More effective.
         turn_space = 'UT!ut1LK@FE#RQ$BA%'
         open_set = [ce]
-        closed_set_perms = []
+        closed_set = []
+        num_to_next_step = 0
+        next_choice = []
         step = 1
-    
+
         while True:
             ## Find pos with lowest f_cost
             current = sorted(open_set, key=lambda perm: (perm.f_cost, perm.h_cost))[0]
-    
-            if len(current.alg) == LEN_ALG_TO_RESET * step:
-                open_set = [current]
+
+            ## Collect objects with limit length
+            if len(current.alg) >= LEN_ALG_TO_RESET * step:
+                next_choice.append(current)
+                num_to_next_step += 1
+
+            ## Then when it reaches NUM_OBJ_TO_NEXT_STEP, reset open_set 
+            if num_to_next_step == NUM_OBJ_TO_NEXT_STEP:
+                open_set = next_choice
+                next_choice = []
+                num_to_next_step = 0
                 step += 1
-    
+
             ## Find current turn_space
             if current.alg != '':
-                latest_turn = turn_space.index(current.alg[-1])
+                last_turn = current.alg[-1]
+
+                latest_turn = turn_space.index(last_turn)
                 forbidden_moves = latest_turn - (latest_turn % 3)
                 turn_space_current = turn_space[:forbidden_moves] + \
                                      turn_space[forbidden_moves + 3:]
+
+                ## Remove half of the mirror moves (e.g. RL = LR and so on)
+                if last_turn in 'UT!':
+                    turn_space_current = turn_space_current.replace('ut1', '')
+                elif last_turn in 'ut1':
+                    turn_space_current = turn_space_current.replace('UT!', '')
+                elif last_turn in 'LK@':
+                    turn_space_current = turn_space_current.replace('RQ$', '')
+                elif last_turn in 'FE#':
+                    turn_space_current = turn_space_current.replace('BA%', '')
             else:
                 turn_space_current = turn_space
-    
+
             ## Remove from open set, add to closed set
             open_set.remove(current)
-            closed_set_perms.append(current.edge_perm)
-    
+            closed_set.append(current.edge_perm)
+
             ## Return if perm is equal to solved perm and undo double layer U turns
             if current.h_cost == 0:
-                dl_turns = (current.alg.count("u") -
-                            current.alg.count("t") +
-                        2 * current.alg.count("1")) % 4
-                current.alg += ['', 't', '1', 'u'][dl_turns]
                 return current.alg
-    
+
+            ## Create new objects and put in open_set to check next
             for turn in turn_space_current:
                 ce = CrossEdges(current._apply_turn(turn), current.alg + turn,
-                                self.solved_dict, self.cross_color)
-                if ce.edge_perm in closed_set_perms:
+                                current.solved_dict, self.cross_color, turn)
+                ## Don't do it for double layer slices since that changes relative positions
+                if ce.edge_perm in closed_set and turn not in ['u', 't', '1']:
                     continue
 
                 open_set.append(ce)
@@ -142,12 +162,16 @@ class CrossEdges:
                   were solved
     cross_color - The color of the Down face (i.e. of the cross being solved)
     '''
-    def __init__(self, edge_perm, alg, solved_dict, cross_color):
-        self.solved_dict = solved_dict
+    def __init__(self, edge_perm, alg, solved_dict, cross_color, turn):
+        if turn in ['u', 't', '1']:
+            self.solved_dict = self._center_rotate(turn, solved_dict)
+        else:
+            self.solved_dict = solved_dict
         self.cross_color = cross_color
 
         self.edge_perm = edge_perm
         self.alg = alg
+
         self.flip_penalty = self._bad_flipped_edges()
         self.g_cost = LEN_WEIGHT * len(self.alg)
         self.h_cost = self._metric_to_solved() + self.flip_penalty
@@ -184,15 +208,33 @@ class CrossEdges:
             ## Can only be wrongly flipped if on Down or Up face
             if coord[1] != 0:
                 ## But white sticker isn't on Down or Up face
-                if colors[0] == 'w' or colors[2] == 'w':
+                if self.cross_color in [colors[0], colors[2]]:
                     bad_flip += 1
 
         return bad_flip
 
 
+    def _center_rotate(self, utype, solved_dict):
+        '''
+        Rotates the solved_dict whenever a double layer turn is done.
+        '''
+        param_dict = {'cw'  : [ 1, 2, -1, 0],
+                      'ccw' : [-1, 2,  1, 0],
+                      'dt'  : [-1, 0, -1, 2]}
+
+        ttype = 'ccw' * (utype == 'u') + 'cw' * (utype == 't') + 'dt' * (utype == '1')
+        p = param_dict[ttype]
+        new_coords = {}
+
+        for color, coord in solved_dict.items():
+            new_coords[color] = (p[0]*coord[p[1]], coord[1], p[2]*coord[p[3]])
+
+        return new_coords
+
+
     def _metric_to_solved(self):
         '''
-        Metric as described in CrossEdges class description.
+        Metric as described in the CrossEdges class description.
         '''
         tot_distance = 0
 
