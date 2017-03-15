@@ -22,6 +22,8 @@ def alg_to_code(alg):
     alg - The cubing algorithm to convet to code syntax
     '''
     code = ''
+    alg_len = len(alg) - 1
+
     ele_alg = 'ulfrbdMxyzULFRBD'
     ele_code = '1234567890!@#$%^'
 
@@ -30,30 +32,36 @@ def alg_to_code(alg):
         if turn in ele_code.replace('2', ''):
             raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
 
-    ## Add END element so the index of n+1 doesn't throw an error
-    alg = np.array(list(alg) + ['END'])
-
     for n, let in enumerate(alg):
         ## Don't do anything for these since they are modifiers and not actual turns
-        if let in ["'", '2', 'END']:
+        if let in ["'", '2', 'END', " "]:
             continue
 
+        if n == alg_len:
+            code += let
+            return code
+
+        ## Double turns
         if alg[n + 1] == '2':
             code += ele_code[ele_alg.index(let)]
+        ## Ccw turns
         elif alg[n + 1] == "'":
+            ## Rotations
             if let in ['x', 'y', 'z']:
                 code += let.upper()
+            ## Middle slice
             elif let == 'M':
                 code += let.lower()
+            ## Turns
             elif let.islower():
                 code += ascii_lowercase[ascii_lowercase.index(let) - 1]
             else:
                 code += ascii_uppercase[ascii_uppercase.index(let) - 1]
+        ## Cw turns and rotations
         else:
             code += let
 
     return code
-
 
 
 def code_to_alg(code):
@@ -73,24 +81,23 @@ def code_to_alg(code):
         if turn in ["'", '2']:
             raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
 
-    ## Add END element so the index of n+1 doesn't throw an error
-    code = np.array(list(code) + ['END'])
-
-    for n, let in enumerate(code):
-        if let == 'END':
-            continue
-
+    for let in code:
+        ## Double turns
         if let in ele_code:
             alg += ele_alg[ele_code.index(let)] + '2'
+        ## Ccw rotations
         elif let in ['X', 'Y', 'Z']:
             alg += let.lower() + "'"
+        ## Middle slice
         elif let == 'm':
             alg += let.upper() + "'"
+        ## Ccw turns
         elif let.lower() in ccw_lets:
             if let.islower():
                 alg += ascii_lowercase[ascii_lowercase.index(let) + 1] + "'"
             else:
                 alg += ascii_uppercase[ascii_uppercase.index(let) + 1] + "'"
+        ## Cw turns and rotations
         else:
             alg += let
 
@@ -131,3 +138,24 @@ def reverse_convert_cube(cube_dict):
         str_perm.append(''.join(side.flatten()))
 
     return str_perm
+
+
+def alg_output(alg):
+    '''
+    Returns a string for an algorithm with spaces between each move for easy
+    readability.
+    
+    Parameters:
+    alg - Algorithm to add spaces to
+    '''
+    proper_alg = ''
+    alg_len = len(alg)
+
+    for n, c in enumerate(alg):
+        proper_alg += c
+
+        if n + 1 != alg_len:
+            if alg[n + 1] not in ["2", "'"]:
+                proper_alg += ' '
+
+    return proper_alg
