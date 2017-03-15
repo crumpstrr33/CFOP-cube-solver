@@ -4,6 +4,7 @@ from datetime import datetime as dt
 from solver import Solver
 import algorithms.tools as tools
 
+SUCCESS_DIST = 40
 
 def test_turns():
     print('Checking every turning move:')
@@ -27,9 +28,14 @@ def test_turns():
         cube = Solver()
         cube.apply_alg(turn_sets[i], True)
 
-        print('Checking', turn_comments[i], end='')
-        assert all(tools.reverse_convert_cube(cube.perm) == correct_perms[i])
-        print('SUCCESS')
+        comment = 'Checking {}'.format(turn_comments[i])
+        print(comment, end='', flush=True)
+        assert all(tools.reverse_convert_cube(cube.perm) == correct_perms[i]), \
+               'Failed with this set of turns: {}\n\n'.format(turn_sets[i]) + \
+               'Got this permutation:\n{}\n\n'.format(tools.reverse_convert_cube(cube.perm)) + \
+               'Instead of this permutation:\n{}'.format(correct_perms[i])
+
+        print(' ' * (SUCCESS_DIST - len(comment)), 'SUCCESS', flush=True)
     print('')
 
 
@@ -53,9 +59,14 @@ def test_rotate():
         cube = Solver(initial_perm)
         cube.apply_alg(rotation_sets[i], True)
 
-        print('Checking', turn_comments[i], end='')
-        assert all(tools.reverse_convert_cube(cube.perm) == correct_perms[i])
-        print('SUCCESS')
+        comment = 'Checking {}'.format(turn_comments[i], flush=True)
+        print(comment, end='')
+        assert all(tools.reverse_convert_cube(cube.perm) == correct_perms[i]), \
+               'Failed with this set of rotations: {}\n\n'.format(rotation_sets[i]) + \
+               'Got this permutation:\n{}\n\n'.format(tools.reverse_convert_cube(cube.perm)) + \
+               'Instead of this permutation:\n{}'.format(correct_perms[i])
+
+        print(' ' * (SUCCESS_DIST - len(comment)), 'SUCCESS', flush=True)
     print('')
 
 
@@ -63,22 +74,77 @@ def test_translate():
     print('Checking the translation methods:')
     print('---------------------------------')
 
-    alg = "ULFRBDulfrbdU'L'F'R'B'D'u'l'f'r'b'd'U2L2F2R2B2D2u2l2f2r2b2d2"
-    code = "ULFRBDulfrbdTKEQACtkeqac!@#$%^123456"
+    alg = "U L F R B D u l f r b d U' L' F' R' B' D' " + \
+          "u' l' f' r' b' d' U2 L2 F2 R2 B2 D2 u2 l2 f2 r2 b2 d2 " + \
+          "x y z x' y' z' x2 y2 z2"
+    alg = alg.split(' ')
+    code = list("ULFRBDulfrbdTKEQACtkeqac!@#$%^123456xyzXYZ890")
 
-    print('Checking alg_to_code... ', end='')
-    assert tools.alg_to_code(alg) == code
-    print('SUCCESS')
+    comment = 'Checking alg_to_code... '
+    print(comment, end='', flush=True)
+    for n, turn in enumerate(alg):
+        assert tools.alg_to_code(turn) == code[n], \
+               '{} translated into {},'.format(turn, tools.alg_to_code(turn)) + \
+               ' not {} as it should.'.format(code[n])
 
-    print('Checking code_to_alg... ', end='')
-    assert tools.code_to_alg(code) == alg
-    print('SUCCESS')
+    print(' ' * (SUCCESS_DIST - len(comment)), 'SUCCESS', flush=True)
+
+    comment = 'Checking code_to_alg... '
+    print(comment, end='', flush=True)
+    for n, turn in enumerate(code):
+        assert tools.code_to_alg(turn) == alg[n], \
+               '{} translated into {},'.format(turn, tools.code_to_alg(turn)) + \
+               ' not {} as it should.'.format(alg[n])
+
+    print(' ' * (SUCCESS_DIST - len(comment)), 'SUCCESS', flush=True)
+    print('')
+
+
+def test_cross():
+    print('Checking the cross finding algorithm:')
+    print('-------------------------------------')
+
+    turn_space = list('UT!LK@FE#RQ$BA%DC^xyz')
+
+    for random_perm in range(10):
+        cube = Solver()
+        cube.apply_alg(''.join(np.random.choice(turn_space, 30)))
+
+        start_perm = tools.reverse_convert_cube(cube.perm)
+
+        cube.solve_cross()
+        cube.find_step()
+
+        final_perm = tools.reverse_convert_cube(cube.perm)
+        comment = 'Checking random algorithm number {}...'.format(random_perm + 1)
+        print(comment, end='', flush=True)
+        assert cube.step == 'f2l', \
+               'The perm:\n{}\n\nwas solved to:'.format(start_perm) + \
+               '\n{}\n\nand failed to create a cross.'.format(final_perm)
+
+        print(' ' * (SUCCESS_DIST - len(comment)), 'SUCCESS')
+
+
+def test_f2l():
+    pass
+
+
+def test_oll():
+    pass
+
+
+def test_pll():
+    pass
 
 
 def main():
     test_turns()
     test_rotate()
     test_translate()
+    test_cross()
+    test_f2l()
+    test_oll()
+    test_pll()
 
 
 if __name__ == "__main__":
@@ -86,4 +152,4 @@ if __name__ == "__main__":
     main()
     t1 = dt.now()
 
-    print('\nThe checks took %.3f ms.' % ((t1 - t0).total_seconds() * 1000))
+    print('\nThe checks took {:.3f} seconds.'.format((t1 - t0).total_seconds()))
