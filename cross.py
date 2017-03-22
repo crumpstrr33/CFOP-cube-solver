@@ -2,7 +2,8 @@ from algorithms.alg_dicts import turn_dict, param_dict
 
 LEN_WEIGHT = 3
 LEN_ALG_TO_RESET = 4
-NUM_OBJ_TO_NEXT_STEP = 20
+NUM_OBJ_TO_NEXT_STEP = 15
+
 
 class Cross:
     '''
@@ -19,10 +20,8 @@ class Cross:
     def __init__(self, perm):
         self.perm = perm
         self.cross_color = ''.join(self.perm[(0, -1, 0)])
-
-        self.init_dict, self.init_perm = self._cross_edges()
+        self.init_perm = self._cross_edges()
         self.solved_dict = self._solved_edges()
-
 
         self.alg = self._find_path()
 
@@ -31,19 +30,15 @@ class Cross:
         '''
         Finds the current position of the cross edges by color and coordinates
         '''
-        cross_edge_color, cross_edge_coord = {}, {}
+        cross_edges = {}
 
         for coord, colors in self.perm.items():
             ## Look at edge pieces with cross_color sticker color
             if coord.count(0) == 1 and self.cross_color in colors:
-                ## Dict with (k, v) = (non-white color, coordinate)
-                edge_color = ''.join(''.join(colors).split(self.cross_color))
-                cross_edge_color[edge_color] = coord
-
                 ## Dict with (k, v) = (coordinate, 3-element color list)
-                cross_edge_coord[coord] = colors
+                cross_edges[coord] = colors
 
-        return cross_edge_color, cross_edge_coord
+        return cross_edges
 
 
     def _solved_edges(self):
@@ -70,10 +65,10 @@ class Cross:
         '''
         A* pathfinding algorithm to solve for the cube's cross.
         '''
-        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color, '')
+        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color)
 
-        ## Use double layer U turns instead of D turns. More effective.
-        turn_space = 'UT!ut1LK@FE#RQ$BA%'
+        ## Every single layer face turn
+        turn_space = 'UT!LK@FE#RQ$BA%DC^'
         open_set = [ce]
         closed_set = []
         num_to_next_step = 0
@@ -81,8 +76,9 @@ class Cross:
         step = 1
 
         while True:
-            ## Find pos with lowest f_cost
-            current = sorted(open_set, key=lambda perm: (perm.f_cost, perm.h_cost))[0]
+            ## Find pos with lowest f_cost, then lowest h_cost
+            open_set = sorted(open_set, key=lambda ce: (ce.f_cost, ce.h_cost))
+            current = open_set[0]
 
             ## Collect objects with limit length
             if len(current.alg) >= LEN_ALG_TO_RESET * step:
@@ -107,9 +103,7 @@ class Cross:
 
                 ## Remove half of the mirror moves (e.g. RL = LR and so on)
                 if last_turn in 'UT!':
-                    turn_space_current = turn_space_current.replace('ut1', '')
-                elif last_turn in 'ut1':
-                    turn_space_current = turn_space_current.replace('UT!', '')
+                    turn_space_current = turn_space_current.replace('DC^', '')
                 elif last_turn in 'LK@':
                     turn_space_current = turn_space_current.replace('RQ$', '')
                 elif last_turn in 'FE#':
@@ -123,15 +117,23 @@ class Cross:
 
             ## Return if perm is equal to solved perm and undo double layer U turns
             if current.h_cost == 0:
-                return current.alg
+                cw = current.alg.count('u')
+                ccw = -current.alg.count('t')
+                dt = 2 * current.alg.count('1')
+                final_rotate_move = ['', 't', '1', 'u'][(cw + ccw + dt) % 4]
 
-            ## Create new objects and put in open_set to check next
+                return current.alg + final_rotate_move
+
+            ## Create new objects and put in open_set to check next if perm 
+            ## hasn't already been found
             for turn in turn_space_current:
-                ce = CrossEdges(current._apply_turn(turn), current.alg + turn,
-                                current.solved_dict, self.cross_color, turn)
-                ## Don't do it for double layer slices since that changes relative positions
-                if ce.edge_perm in closed_set and turn not in ['u', 't', '1']:
+                new_perm = current.apply_turn(turn)
+                new_alg = current.alg + turn
+
+                if new_perm in closed_set:
                     continue
+
+                ce = CrossEdges(new_perm, new_alg, self.solved_dict, self.cross_color)
 
                 open_set.append(ce)
 
@@ -162,38 +164,32 @@ class CrossEdges:
                   were solved
     cross_color - The color of the Down face (i.e. of the cross being solved)
     '''
-    def __init__(self, edge_perm, alg, solved_dict, cross_color, turn):
-        if turn in ['u', 't', '1']:
-            self.solved_dict = self._center_rotate(turn, solved_dict)
-        else:
-            self.solved_dict = solved_dict
+    def __init__(self, edge_perm, alg, solved_dict, cross_color):
+        self.solved_dict = solved_dict
         self.cross_color = cross_color
 
         self.edge_perm = edge_perm
+        self.cross_edges = self._calc_cross_edges()
         self.alg = alg
 
         self.flip_penalty = self._bad_flipped_edges()
         self.g_cost = LEN_WEIGHT * len(self.alg)
         self.h_cost = self._metric_to_solved() + self.flip_penalty
+        self.f_cost = self.h_cost + self.g_cost
 
 
-    @property
-    def f_cost(self):
-        '''
-        Total cost. Metric to determine next best move.
-        '''
-        return self.h_cost + self.g_cost
-
-
-    @property
-    def cross_edges(self):
+    def _calc_cross_edges(self):
         '''
         Cross edge dict by color.
         '''
         cross_edge_dict = {}
         for coord, colors in self.edge_perm.items():
+            colors_copy = colors.copy()
+            colors_copy.remove(self.cross_color)
+            colors_copy.remove('')
+
             ## Dict with (k, v) = (non-white color, coordinate)
-            cross_edge_dict[''.join(''.join(colors).split(self.cross_color))] = coord
+            cross_edge_dict[colors_copy[0]] = coord
 
         return cross_edge_dict
 
@@ -214,38 +210,19 @@ class CrossEdges:
         return bad_flip
 
 
-    def _center_rotate(self, utype, solved_dict):
-        '''
-        Rotates the solved_dict whenever a double layer turn is done.
-        '''
-        param_dict = {'cw'  : [ 1, 2, -1, 0],
-                      'ccw' : [-1, 2,  1, 0],
-                      'dt'  : [-1, 0, -1, 2]}
-
-        ttype = 'ccw' * (utype == 'u') + 'cw' * (utype == 't') + 'dt' * (utype == '1')
-        p = param_dict[ttype]
-        new_coords = {}
-
-        for color, coord in solved_dict.items():
-            new_coords[color] = (p[0]*coord[p[1]], coord[1], p[2]*coord[p[3]])
-
-        return new_coords
-
-
     def _metric_to_solved(self):
         '''
         Metric as described in the CrossEdges class description.
         '''
         tot_distance = 0
 
-        for color, coord in self.solved_dict.items():
-            tot_distance += sum([abs(self.cross_edges[color][i] - coord[i])
-                                        for i in range(3)])
+        for color, coord in self.cross_edges.items():
+            tot_distance += sum(map(lambda x, y: abs(x - y), coord, self.solved_dict[color]))
 
         return tot_distance
 
 
-    def _turn_rotate(self, ttype, side, dl=False):
+    def _turn_rotate(self, ttype, side):
         '''
         Applies a turn to the 4 cubies analgous to the Cube class method. Here,
         a new dict is returned (with the 4 cubies' new coordinates) instead of
@@ -255,13 +232,7 @@ class CrossEdges:
         p = param_dict[ttype][side]
         new_coords = {}
 
-        ## Choose correct layers to rotate
-        if dl:
-            turning_layers = [0, p[1]]
-        elif side == 'm':
-            turning_layers = [0]
-        else:
-            turning_layers = [p[1]]
+        turning_layers = [p[1]]
 
         for cubie, colors in self.edge_perm.items():
             if cubie[p[0]] in turning_layers:
@@ -273,7 +244,7 @@ class CrossEdges:
         return new_coords
 
 
-    def _apply_turn(self, turn):
+    def apply_turn(self, turn):
         '''
         Analgous to Cube class method except only works for one turn at a time.
         '''
