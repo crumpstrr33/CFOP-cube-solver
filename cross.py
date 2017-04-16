@@ -2,7 +2,17 @@ from collections import deque
 
 from algorithms.alg_dicts import turn_dict, param_dict
 
-LEN_WEIGHT = 1
+# So... looking good. Still some problems. Don't want to arbitrarilty restrict
+# it with the 9 move cutoff. Also, flip penalty 1 or 2? I'm leaning towards 2.
+# Lastly, a weight on alg length? I'm leaning towards a weight of 1
+
+# A FP of 2 makes sense because a bad flipped edge can be thought of as being
+# one quarter turn away from a good flipped edge (and one quarter turn has a
+# metric here of 2)
+
+# Having a weight for the alg length seems arbitrary and messy if it's left up
+# to me choosing one. Having no weight (i.e. a weight of 1) seems to work, so
+# I'll keep it for now.
 
 
 class Cross:
@@ -12,20 +22,25 @@ class Cross:
     It solves it using an A* pathfinding algorithm where each new node is a
     CrossEdges object. The list containing the nodes is sorted via a heap sort
     where new nodes are appended and sorted up the tree since only the node
-    with the lowest heuristic is needed.
+    with the lowest metric is needed.
+
+    There is an artificial cutoff at 10 moves. Since 10+ algorithms are always
+    superfluous for a cross.
 
     Parameters:
     perm - The full permutation of the cube in its dict form
     """
+
     def __init__(self, perm):
         self.perm = perm
         self.cross_color = ''.join(self.perm[(0, -1, 0)])
-        self.init_perm = self._cross_edges()
-        self.solved_dict = self._solved_edges()
+        self.init_perm = self._init_perm()
+        self.solved_edges = self._solved_edges()
+        self.solved_side_colors = self._solved_side_colors()
 
-        self.alg = self._find_path()
+        self.alg, self.open_sets, self.closed_sets = self._find_path()
 
-    def _cross_edges(self):
+    def _init_perm(self):
         """
         Finds the current position of the cross edges by
         color and coordinates
@@ -53,17 +68,33 @@ class Cross:
                     center_dict[''.join(color)] = coord
 
         # Dict with (k, v) = (non-white color, coordinate)
-        solved_dict = {}
+        solved_edges = {}
         for color, coord in center_dict.items():
-            solved_dict[color] = (coord[0], -1, coord[2])
+            solved_edges[color] = (coord[0], -1, coord[2])
 
-        return solved_dict
+        return solved_edges
+
+    def _solved_side_colors(self):
+        '''
+        Finds side center colors in the order: F R B L
+        '''
+        # The order wanted
+        order = [(0, -1, 1), (1, -1, 0), (0, -1, -1), (-1, -1, 0)]
+        side_colors = []
+
+        for n in range(4):
+            for color, coord in self.solved_edges.items():
+                if coord == order[n]:
+                    side_colors.append(color)
+
+        return side_colors
 
     def _find_path(self):
         """
         A* pathfinding algorithm to solve for the cube's cross.
         """
-        ce = CrossEdges(self.init_perm, '', self.solved_dict, self.cross_color)
+        ce = CrossEdges(self.init_perm, '', self.solved_edges,
+                        self.cross_color, self.solved_side_colors)
 
         # Every single layer face turn
         turn_space = 'UT!LK@FE#RQ$BA%DC^'
@@ -105,10 +136,9 @@ class Cross:
             # Add to closed set
             closed_set.append(current.edge_perm)
 
-            # Return if perm is equal to solved perm and
-            # undo double layer U turns
-            if not current.h_cost:
-                return current.alg
+            # Return if perm is equal to solved perm
+            if not current.abs_h_cost:
+                return current.alg, len(self.open_set), len(closed_set)
 
             # Create new objects and put in open_set to
             # check next if perm hasn't already been found
@@ -120,8 +150,8 @@ class Cross:
                 if new_perm in closed_set or new_alg_len == 10:
                     continue
 
-                ce = CrossEdges(new_perm, new_alg,
-                                self.solved_dict, self.cross_color)
+                ce = CrossEdges(new_perm, new_alg, self.solved_edges,
+                                self.cross_color, self.solved_side_colors)
                 self._move_up(ce)
 
     def _move_up(self, ce):
@@ -209,15 +239,15 @@ class CrossEdges:
     The class representing a node in the A* algorithm.
 
     The metric from the intial state is defined as the sum of the absolute
-    value of the difference of each of the three coordinates. And the metric
-    from the solved state is the length of the algorithm multiplied by some
-    weight.
+    value of the difference of each of the three coordinates. This metric is
+    found for the one absolute and three relative positions of the cross. This
+    can be imagined like rotating just the side centers and seeing how close
+    the cube is to having a cross.
 
-    A higher weight places more importance on finding a shorter algorithm at
-    the cost of time while a lower weight does the opposite.
-
-    The sum of these two metrics is considered when deciding which node to
-    investigate next.
+    The absolute measure (abs_h_cost) is used to determine if a cross has been
+    found. The relative measure (rel_h_cost) is used with the flip_penatly for
+    the h_cost which is used everywhere else. The f_cost is the total metric
+    which also sums the current length of the algorithm as a factor.
 
     Moves are applied to the cube like usual, but only the four cross edges
     are moved since the permuation of the other cubies is irrelevant.
@@ -226,29 +256,37 @@ class CrossEdges:
     edge_perm - The permutation of just the four cross edges in dict form
     alg - The alg used to obtain this current edge_perm from the initial perm
           of the cube
-    solved_dict - The color-first dict of the permutation of the edges if they
-                  were solved
+    solved_edges - The color-first dict of the permutation of the edges if they
+                   were solved
     cross_color - The color of the Down face (i.e. of the cross being solved)
+    solved_side_colors - A 4-element list of the side colors of the cross in
+                         the order: F R D L to use as a reference for relative
+                         positions of the current cross edge pieces
     """
-    def __init__(self, edge_perm, alg, solved_dict, cross_color):
+
+    def __init__(self, edge_perm, alg, solved_edges, cross_color,
+                 solved_side_colors):
         # Constant for every CrossEdge object
-        self.solved_dict = solved_dict
+        self.solved_edges = solved_edges
         self.cross_color = cross_color
 
         # Constant for each CrossEdge object
         self.edge_perm = edge_perm
-        self.cross_edges = self._calc_cross_edges()
+        self.solved_side_colors = solved_side_colors
+        self.cross_edges = self._cross_edges()
         self.alg = alg
 
         # Metrics
-        self.flip_penalty = self._bad_flipped_edges()
-        self.g_cost = LEN_WEIGHT * len(self.alg)
-        self.h_cost = self._metric_to_solved() + self.flip_penalty
+        self.flip_penalty = 2 * self._bad_flipped_edges()
+        self.g_cost = len(self.alg)
+        self.rel_h_cost, self.abs_h_cost = self._all_metrics()
+        self.abs_h_cost += self.flip_penalty
+        self.h_cost = self.rel_h_cost + self.flip_penalty
         self.f_cost = self.h_cost + self.g_cost
 
-    def _calc_cross_edges(self):
+    def _cross_edges(self):
         """
-        Cross edge dict by color: coord.
+        Cross edge dict by (k, v) = (color, coord).
         """
         cross_edge_dict = {}
         for coord, colors in self.edge_perm.items():
@@ -275,15 +313,43 @@ class CrossEdges:
 
         return bad_flip
 
-    def _metric_to_solved(self):
+    def _all_metrics(self):
         """
-        Metric as described in the CrossEdges class description.
+        Finds the metric for each relative position of the side center pieces
+        and returns the value for the minimum of these along with the metric
+        for the absolute position.
         """
+        # Find the absolute metric
+        abs_tot_distance = self._metric(self.solved_edges)
+
+        min_tot_distance = 100
+        # Try each of the 3 remaining relative positions
+        # (rotations of side centers)
+        for turn in range(1, 4):
+            rel_solved_edges = {}
+            # Rotate colors in side edge dict
+            for n, color in enumerate(self.solved_side_colors):
+                new_color = self.solved_side_colors[(n + turn) % 4]
+                rel_solved_edges[new_color] = self.solved_edges[color]
+
+            # Calculate metric for new dict
+            tot_distance = self._metric(rel_solved_edges)
+
+            # Keep value if is less than current minimum
+            if tot_distance < min_tot_distance:
+                min_tot_distance = tot_distance
+
+        return min(min_tot_distance, abs_tot_distance), abs_tot_distance
+
+    def _metric(self, end_pos):
+        '''
+        Sums the difference of each coordinate dimension
+        '''
         tot_distance = 0
 
         for color, coord in self.cross_edges.items():
             tot_distance += sum(map(lambda x, y: abs(x - y),
-                                    coord, self.solved_dict[color]))
+                                    coord, end_pos[color]))
 
         return tot_distance
 
@@ -313,7 +379,6 @@ class CrossEdges:
 
     def apply_turn(self, turn):
         """
-        Analgous to Cube class method except only works for
-        one turn at a time.
+        Analgous to Cube class method except only works for one turn at a time.
         """
         return self._turn_rotate(*turn_dict[turn])
