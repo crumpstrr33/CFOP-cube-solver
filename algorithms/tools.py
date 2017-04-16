@@ -3,7 +3,7 @@ from string import ascii_lowercase, ascii_uppercase
 
 
 def alg_to_code(alg):
-    '''
+    """
     Will convert from regular algorithm syntax to the syntax used in code.
     Code syntax is such that each character of the string is one move
     (rather than r' being two characters but one move). The conversion works as
@@ -20,20 +20,22 @@ def alg_to_code(alg):
 
     Parameters:
     alg - The cubing algorithm to convet to code syntax
-    '''
+    """
     code = ''
     alg_len = len(alg) - 1
 
     ele_alg = 'ulfrbdMxyzULFRBD'
     ele_code = '1234567890!@#$%^'
 
-    ## Checks if syntax is correct
+    # Checks if syntax is correct
     for turn in alg:
         if turn in ele_code.replace('2', ''):
-            raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
+            raise Exception('Incorrect syntax;' +
+                            'found {} in passed algorithm'.format(turn))
 
     for n, let in enumerate(alg):
-        ## Don't do anything for these since they are modifiers and not actual turns
+        # Don't do anything for these since they are modifiers
+        # and not actual turns
         if let in ["'", '2', 'END', " "]:
             continue
 
@@ -41,23 +43,23 @@ def alg_to_code(alg):
             code += let
             return code
 
-        ## Double turns
+        # Double turns
         if alg[n + 1] == '2':
             code += ele_code[ele_alg.index(let)]
-        ## Ccw turns
+        # CCW turns
         elif alg[n + 1] == "'":
-            ## Rotations
+            # Rotations
             if let in ['x', 'y', 'z']:
                 code += let.upper()
-            ## Middle slice
+            # Middle slice
             elif let == 'M':
                 code += let.lower()
-            ## Turns
+            # Turns
             elif let.islower():
                 code += ascii_lowercase[ascii_lowercase.index(let) - 1]
             else:
                 code += ascii_uppercase[ascii_uppercase.index(let) - 1]
-        ## Cw turns and rotations
+        # CW turns and rotations
         else:
             code += let
 
@@ -65,47 +67,48 @@ def alg_to_code(alg):
 
 
 def code_to_alg(code):
-    '''
+    """
     Does the reverse of alg_to_code. See alg_to_code for details.
 
     Parameters:
     code - The code syntax to convert to cubing algorithm
-    '''
+    """
     alg = ''
     ele_alg = 'ulfrbdMxyzULFRBD'
     ele_code = '1234567890!@#$%^'
     ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
 
-    ## Checks if syntax is correct
+    # Checks if syntax is correct
     for turn in alg:
         if turn in ["'", '2']:
-            raise Exception('Incorrect syntax; found %s in passed algorithm' % turn)
+            raise Exception('Incorrect syntax;'
+                            'found {} in passed algorithm'.format(turn))
 
     for let in code:
-        ## Double turns
+        # Double turns
         if let in ele_code:
             alg += ele_alg[ele_code.index(let)] + '2'
-        ## Ccw rotations
+        # CCW rotations
         elif let in ['X', 'Y', 'Z']:
             alg += let.lower() + "'"
-        ## Middle slice
+        # Middle slice
         elif let == 'm':
             alg += let.upper() + "'"
-        ## Ccw turns
+        # CCW turns
         elif let.lower() in ccw_lets:
             if let.islower():
                 alg += ascii_lowercase[ascii_lowercase.index(let) + 1] + "'"
             else:
                 alg += ascii_uppercase[ascii_uppercase.index(let) + 1] + "'"
-        ## Cw turns and rotations
+        # CW turns and rotations
         else:
             alg += let
 
     return alg
 
 
-def reverse_convert_cube(cube_dict):
-    '''
+def dict_to_list(cube_dict):
+    """
     Given a the permutation of the cube as a dict (from a Cube object), this
     returns the permuation as a 6 element list of 9 char strings representing
     the stickers on the cube. This is used to make checks.
@@ -113,11 +116,11 @@ def reverse_convert_cube(cube_dict):
     Parameters:
     cube_dict - The perm of a cube in dict form as described in the cube.Cube
                 class
-    '''
+    """
     perm = np.zeros((6, 3, 3)).astype(str)
 
-    ## Create 6x3x3 lsit of the stickers, just the reverse of what is done in
-    ## the Cube class
+    # Create 6x3x3 lsit of the stickers, just the reverse of what is done in
+    # the Cube class
     for cubie in cube_dict:
         if cubie[0] == 1:
             perm[3][abs(cubie[1] - 1)][abs(cubie[2] - 1)] = cube_dict[cubie][0]
@@ -132,7 +135,7 @@ def reverse_convert_cube(cube_dict):
         if cubie[2] == -1:
             perm[4][abs(cubie[1] - 1)][abs(cubie[0] - 1)] = cube_dict[cubie][2]
 
-    ## Join each 3x3 array together as one string
+    # Join each 3x3 array together as one string
     str_perm = []
     for side in perm:
         str_perm.append(''.join(side.flatten()))
@@ -141,13 +144,13 @@ def reverse_convert_cube(cube_dict):
 
 
 def alg_output(alg):
-    '''
+    """
     Returns a string for an algorithm with spaces between each move for easy
     readability.
-    
+
     Parameters:
     alg - Algorithm to add spaces to
-    '''
+    """
     proper_alg = ''
     alg_len = len(alg)
 
