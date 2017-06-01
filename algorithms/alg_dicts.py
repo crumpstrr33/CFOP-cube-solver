@@ -2,7 +2,7 @@
 Used in Cube's turn_rotate method to use the correct indices of the cube when
 applying a turn or rotation.
 '''
-param_dict = {
+PARAM_DICT = {
     # Clockwise turns
     'cw': {
         'u': [1, 1, -1, 2,  1, 1,  1, 0], 'd': [1, -1,  1, 2,  1, 1, -1, 0],
@@ -24,9 +24,10 @@ param_dict = {
 
 
 '''
-Used in Cube's and CrossEdges's apply_alg methods to turn the turning syntax to actual turns.
+Used in Cube's and CrossEdges's apply_alg methods to conver from the code
+syntax for turns to actually applying the turns.
 '''
-turn_dict = {
+TURN_DICT = {
     # Single layer turns
     'U': ['cw', 'u'], 'T': ['ccw', 'u'], '!': ['dt', 'u'],
     'L': ['cw', 'l'], 'K': ['ccw', 'l'], '@': ['dt', 'l'],

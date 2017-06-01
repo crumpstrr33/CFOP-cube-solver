@@ -2,15 +2,15 @@
 Reads the dicts from alg_config.py and converts the algorithms into the syntax
 used by the code.
 '''
-from algorithms.alg_config import oll_algs, pll_algs
+from algorithms.alg_config import OLL_ALGS, PLL_ALGS
 from algorithms.tools import alg_to_code
 
 
-pll_code = {}
-for name, alg in pll_algs.items():
-    pll_code[name] = alg_to_code(alg)
+PLL_CODE = {}
+for name, alg in PLL_ALGS.items():
+    PLL_CODE[name] = alg_to_code(alg)
 
 
-oll_code = {}
-for name, alg in oll_algs.items():
-    oll_code[name] = alg_to_code(alg)
+OLL_CODE = {}
+for name, alg in OLL_ALGS.items():
+    OLL_CODE[name] = alg_to_code(alg)

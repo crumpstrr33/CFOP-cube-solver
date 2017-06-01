@@ -2,7 +2,7 @@
 All 57 1-Look OLL cases (or 58 if counting the solved state) written out out
 as cubing algorithms which were copied from http://badmephisto.com/oll.php.
 '''
-oll_algs = {
+OLL_ALGS = {
     # (R U R' U') Triggers
     'case_01': "FRUR'U'F'",
     'case_02': "FRUR'U'RUR'U'F'",
@@ -79,7 +79,7 @@ oll_algs = {
 All 21 1-Look PLL cases (or 22 if counting the solved state) written out out
 as cubing algorithms which were copied from http://badmephisto.com/pll.php.
 '''
-pll_algs = {
+PLL_ALGS = {
     # 1/18 chance of occuring
     'aa_perm': "xR'UR'D2RU'R'D2R2x'",
     'ab_perm': "x'RU'RD2R'URD2R2x",
