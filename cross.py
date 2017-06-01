@@ -1,6 +1,10 @@
+'''
+Contains the Cross class along with the CrossNode classed used to find the
+cross algorithm via A* pathfinding.
+'''
 from collections import deque
 
-from algorithms.alg_dicts import turn_dict, param_dict
+from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
 
 # So... looking good. Still some problems. Don't want to arbitrarilty restrict
 # it with the 9 move cutoff. Also, flip penalty 1 or 2? I'm leaning towards 2.
@@ -20,7 +24,7 @@ class Cross:
     This class solves the cross on the Down face for a given permutation.
 
     It solves it using an A* pathfinding algorithm where each new node is a
-    CrossEdges object. The list containing the nodes is sorted via a heap sort
+    CrossNode object. The list containing the nodes is sorted via a heap sort
     where new nodes are appended and sorted up the tree since only the node
     with the lowest metric is needed.
 
@@ -33,9 +37,10 @@ class Cross:
 
     def __init__(self, perm):
         self.perm = perm
+
         self.cross_color = ''.join(self.perm[(0, -1, 0)])
         self.init_perm = self._init_perm()
-        self.solved_edges = self._solved_edges()
+        self.solved_perm = self._solved_perm()
         self.solved_side_colors = self._solved_side_colors()
 
         self.alg, self.open_sets, self.closed_sets = self._find_path()
@@ -49,12 +54,12 @@ class Cross:
 
         for coord, colors in self.perm.items():
             # Look at edge pieces with cross_color color
-            if (coord.count(0) == 1 and self.cross_color in colors):
+            if coord.count(0) == 1 and self.cross_color in colors:
                 cross_edges[coord] = colors
 
         return cross_edges
 
-    def _solved_edges(self):
+    def _solved_perm(self):
         """
         Finds the solved position of the cross edges by color
         """
@@ -68,11 +73,11 @@ class Cross:
                     center_dict[''.join(color)] = coord
 
         # Dict with (k, v) = (non-white color, coordinate)
-        solved_edges = {}
+        solved_perm = {}
         for color, coord in center_dict.items():
-            solved_edges[color] = (coord[0], -1, coord[2])
+            solved_perm[color] = (coord[0], -1, coord[2])
 
-        return solved_edges
+        return solved_perm
 
     def _solved_side_colors(self):
         '''
@@ -83,7 +88,7 @@ class Cross:
         side_colors = []
 
         for n in range(4):
-            for color, coord in self.solved_edges.items():
+            for color, coord in self.solved_perm.items():
                 if coord == order[n]:
                     side_colors.append(color)
 
@@ -93,12 +98,12 @@ class Cross:
         """
         A* pathfinding algorithm to solve for the cube's cross.
         """
-        ce = CrossEdges(self.init_perm, '', self.solved_edges,
-                        self.cross_color, self.solved_side_colors)
+        cn = CrossNode(self.init_perm, '', self.solved_perm,
+                       self.cross_color, self.solved_side_colors)
 
         # Every single layer face turn
         turn_space = 'UT!LK@FE#RQ$BA%DC^'
-        self.open_set = deque([ce])
+        self.open_set = deque([cn])
         closed_set = []
 
         while True:
@@ -147,38 +152,38 @@ class Cross:
                 new_perm = current.apply_turn(turn)
                 new_alg = current.alg + turn
 
-                if new_perm in closed_set or new_alg_len == 10:
+                if new_perm in closed_set or new_alg_len == 11:
                     continue
 
-                ce = CrossEdges(new_perm, new_alg, self.solved_edges,
-                                self.cross_color, self.solved_side_colors)
-                self._move_up(ce)
+                cn = CrossNode(new_perm, new_alg, self.solved_perm,
+                               self.cross_color, self.solved_side_colors)
+                self._move_up(cn)
 
-    def _move_up(self, ce):
+    def _move_up(self, cn):
         """
-        Appends ce to the end of open_set and move it up the heap.
+        Appends cn to the end of open_set and move it up the heap.
         """
-        self.open_set.append(ce)
+        self.open_set.append(cn)
 
         while True:
-            ce_ind = self.open_set.index(ce)
+            # Node info, compare f_cost and h_cost at the same time
+            cn_ind = self.open_set.index(cn)
+            cn_val = cn.f_cost + cn.h_cost/100
+
             # If index is 0, can't move up anymore
-            if not ce_ind:
+            if not cn_ind:
                 return
 
-            # The position above node n is the int half of n - 1
-            ce_up_ind = (ce_ind - 1) // 2
-            ce_up = self.open_set[ce_up_ind]
+            # The position above node n is int half of (n - 1)
+            cn_up_ind = (cn_ind - 1) // 2
+            cn_up = self.open_set[cn_up_ind]
+            cn_up_val = cn_up.f_cost + cn_up.h_cost/100
 
-            # Only swap if f_cost is lower (want lowest f_costs closest to top)
-            if ce.f_cost < ce_up.f_cost:
-                self._swap(ce, ce_ind, ce_up, ce_up_ind)
+            # Compare values
+            if cn_val < cn_up_val:
+                self._swap(cn_ind, cn_up_ind)
             else:
-                # If the same, compare h_costs
-                if ce.h_cost < ce_up.h_cost:
-                    self._swap(ce, ce_ind, ce_up, ce_up_ind)
-                else:
-                    return
+                return
 
     def _move_down(self):
         """
@@ -190,51 +195,58 @@ class Cross:
         if not set_len:
             return
 
-        ce = self.open_set[0]
+        # Compare both f_cost and h_cost at same time
+        cn = self.open_set[0]
+        cn_val = cn.f_cost + cn.h_cost/100
 
         while True:
-            # One lower node for n is 2n + 1
-            ce_ind = self.open_set.index(ce)
-            ce_down_ind = 2 * ce_ind + 1
+            cn_ind = self.open_set.index(cn)
 
-            # If the lower node doesn't exist (i.e. exceeds the length of
-            # open_set, it's at the bottom)
-            if ce_down_ind < set_len:
-                ce_down = self.open_set[ce_down_ind]
+            # Get info for left lower node, make sure we don't go over index
+            if set_len > 2 * cn_ind + 1:
+                cn_ld_ind = 2 * cn_ind + 1
+                cn_ld = self.open_set[cn_ld_ind]
+                cn_ld_val = cn_ld.f_cost + cn_ld.h_cost/100
+                diff_ld = cn_val - cn_ld_val
+            # We reached botom of tree if it doesn't exist
             else:
                 return
 
-            # Only swap if f_cost is higher, o/w compare with other lower node
-            if ce.f_cost > ce_down.f_cost:
-                self._swap(ce, ce_ind, ce_down, ce_down_ind)
+            # Get info for right lower node
+            if set_len > cn_ld_ind + 1:
+                right_node_exists = True
+
+                cn_rd_ind = cn_ld_ind + 1
+                cn_rd = self.open_set[cn_rd_ind]
+                cn_rd_val = cn_rd.f_cost + cn_rd.h_cost/100
+                diff_rd = cn_val - cn_rd_val
+            # We reached end of list if it doesn't exist
             else:
-                # The other lower node is 2n + 2
-                ce_down_ind += 1
+                right_node_exists = False
 
-                # Check so we're not beyond open_set length
-                if ce_down_ind < set_len:
-                    ce_down = self.open_set[ce_down_ind]
-                else:
-                    return
+            # Swap with left lower node due to f_cost
+            if diff_ld >= 1:
+                self._swap(cn_ind, cn_ld_ind)
+            # Swap with right lower node due to f_cost
+            elif right_node_exists and diff_rd >= 1:
+                self._swap(cn_ind, cn_rd_ind)
+            # Swap with left lower node due to h_cost
+            elif diff_ld > 0:
+                self._swap(cn_ind, cn_ld_ind)
+            # Swap with right lower node due to h_cost
+            elif right_node_exists and diff_rd > 0:
+                self._swap(cn_ind, cn_ld_ind)
+            else:
+                return
 
-                # Compare with this node's f_cost
-                if ce.f_cost > ce_down.f_cost:
-                    self._swap(ce, ce_ind, ce_down, ce_down_ind)
-                else:
-                    # If not, compare with h_cost
-                    if ce.h_cost > ce_down.h_cost:
-                        self._swap(ce, ce_ind, ce_down, ce_down_ind)
-                    else:
-                        return
-
-    def _swap(self, ce1, ind1, ce2, ind2):
+    def _swap(self, i, j):
         """
-        Swap ce1 (with index ind1) and ce2 (with index ind2) in open_set
+        Swaps elements at i and j in open_set
         """
-        self.open_set[ind1], self.open_set[ind2] = ce2, ce1
+        self.open_set[i], self.open_set[j] = self.open_set[j], self.open_set[i]
 
 
-class CrossEdges:
+class CrossNode:
     """
     The class representing a node in the A* algorithm.
 
@@ -256,7 +268,7 @@ class CrossEdges:
     edge_perm - The permutation of just the four cross edges in dict form
     alg - The alg used to obtain this current edge_perm from the initial perm
           of the cube
-    solved_edges - The color-first dict of the permutation of the edges if they
+    solved_perm - The color-first dict of the permutation of the edges if they
                    were solved
     cross_color - The color of the Down face (i.e. of the cross being solved)
     solved_side_colors - A 4-element list of the side colors of the cross in
@@ -264,20 +276,22 @@ class CrossEdges:
                          positions of the current cross edge pieces
     """
 
-    def __init__(self, edge_perm, alg, solved_edges, cross_color,
+    def __init__(self, edge_perm, alg, solved_perm, cross_color,
                  solved_side_colors):
-        # Constant for every CrossEdge object
-        self.solved_edges = solved_edges
+        # Constant for every CrossNode object
+        self.solved_perm = solved_perm
         self.cross_color = cross_color
 
-        # Constant for each CrossEdge object
+        # Constant for each CrossNode object
         self.edge_perm = edge_perm
         self.solved_side_colors = solved_side_colors
         self.cross_edges = self._cross_edges()
         self.alg = alg
 
         # Metrics
-        self.flip_penalty = 2 * self._bad_flipped_edges()
+        # A factor of 2 because a bad flip is equivalent to a metric score
+        # of 2. So each bad edge adds 2 to the metric
+        self.flip_penalty = 2 * self._flip_penalty()
         self.g_cost = len(self.alg)
         self.rel_h_cost, self.abs_h_cost = self._all_metrics()
         self.abs_h_cost += self.flip_penalty
@@ -298,7 +312,7 @@ class CrossEdges:
 
         return cross_edge_dict
 
-    def _bad_flipped_edges(self):
+    def _flip_penalty(self):
         """
         Counts number of edge pieces that are wrongly flipped.
         """
@@ -320,20 +334,20 @@ class CrossEdges:
         for the absolute position.
         """
         # Find the absolute metric
-        abs_tot_distance = self._metric(self.solved_edges)
+        abs_tot_distance = self._metric(self.solved_perm)
 
         min_tot_distance = 100
         # Try each of the 3 remaining relative positions
         # (rotations of side centers)
         for turn in range(1, 4):
-            rel_solved_edges = {}
+            rel_solved_perm = {}
             # Rotate colors in side edge dict
             for n, color in enumerate(self.solved_side_colors):
                 new_color = self.solved_side_colors[(n + turn) % 4]
-                rel_solved_edges[new_color] = self.solved_edges[color]
+                rel_solved_perm[new_color] = self.solved_perm[color]
 
             # Calculate metric for new dict
-            tot_distance = self._metric(rel_solved_edges)
+            tot_distance = self._metric(rel_solved_perm)
 
             # Keep value if is less than current minimum
             if tot_distance < min_tot_distance:
@@ -360,25 +374,24 @@ class CrossEdges:
         updating current perm.
         """
         # Get the right parameters for the cubie rotation
-        p = param_dict[ttype][side]
-        new_coords = {}
+        p = PARAM_DICT[ttype][side]
+        new_perm = {}
 
         turning_layers = [p[1]]
 
-        for cubie, colors in self.edge_perm.items():
-            if cubie[p[0]] in turning_layers:
-                new_coords[(p[2]*cubie[p[3]],
-                            p[4]*cubie[p[5]],
-                            p[6]*cubie[p[7]])] = \
-                            [colors[p[3]], colors[p[5]], colors[p[7]]]
-
+        for coord, color in self.edge_perm.items():
+            if coord[p[0]] in turning_layers:
+                new_perm[(p[2]*coord[p[3]],
+                          p[4]*coord[p[5]],
+                          p[6]*coord[p[7]])] = \
+                          [color[p[3]], color[p[5]], color[p[7]]]
             else:
-                new_coords[cubie] = colors
+                new_perm[coord] = color
 
-        return new_coords
+        return new_perm
 
     def apply_turn(self, turn):
         """
         Analgous to Cube class method except only works for one turn at a time.
         """
-        return self._turn_rotate(*turn_dict[turn])
+        return self._turn_rotate(*TURN_DICT[turn])
