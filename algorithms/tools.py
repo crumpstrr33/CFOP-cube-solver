@@ -1,5 +1,8 @@
-import numpy as np
+'''
+Contains various useful functions that are used throughout this project.
+'''
 from string import ascii_lowercase, ascii_uppercase
+import numpy as np
 
 
 def alg_to_code(alg):
@@ -143,22 +146,75 @@ def dict_to_list(cube_dict):
     return str_perm
 
 
-def alg_output(alg):
+def alg_output(alg, code=True):
     """
     Returns a string for an algorithm with spaces between each move for easy
     readability.
 
     Parameters:
-    alg - Algorithm to add spaces to
+    alg - Algorithm to which to add spaces
+    code - (default True) will first translate from code syntax to algorithm
+           before adding spaces
     """
+    if code:
+        alg = code_to_alg(alg)
+
     proper_alg = ''
     alg_len = len(alg)
 
-    for n, c in enumerate(alg):
-        proper_alg += c
+    for n, turn in enumerate(alg):
+        proper_alg += turn
 
         if n + 1 != alg_len:
             if alg[n + 1] not in ["2", "'"]:
                 proper_alg += ' '
 
     return proper_alg
+
+
+def random_scramble(num_turns, alg_syntax=True):
+    '''
+    Creates a random scramble for a cube. Duplicate moves such as D D' or F F2
+    and so on are avoided along with 'sandwich moves' such as L R L2 where the
+    meat of the sandwich is the opposite face of the bread.
+
+    Parameters:
+    num_turns - The length of the algorithm
+    alg_syntax - (default True) If true, the function will return the scramble
+                 as a human-readable algorithm otherwise it will be return as
+                 the code syntax
+    '''
+    turn_space = 'UT!LK@FE#DC^RQ$BA%'
+
+    duplicate_turn, dupe_opp_turn = '', ''
+    alg = ''
+    for n in range(num_turns):
+        current_turn_space = turn_space.replace(duplicate_turn, '')
+        current_turn_space = current_turn_space.replace(dupe_opp_turn, '')
+
+        turn = np.random.choice(list(current_turn_space))
+        alg += turn
+
+        # Removes certain turns for the next turn
+        # Index of the triplet that the current turn belongs to
+        # e.g. ^ belongs to DC^ or E belongs to FE#
+        trip_ind = 3 * (turn_space.index(turn) // 3)
+
+        # Don't turn same face twice in a row
+        duplicate_turn = turn_space[trip_ind: trip_ind + 3]
+
+        # Prevents moves like L R L or B D2 B', etc.
+        if n > 1:
+            # Find opposite side trip_ind
+            opp_trip_ind = (trip_ind + len(turn_space) // 2) % len(turn_space)
+            opp_turn = turn_space[opp_trip_ind: opp_trip_ind + 3]
+
+            if alg[n - 1] in opp_turn:
+                dupe_opp_turn = opp_turn
+        else:
+            dupe_opp_turn = ''
+
+    if alg_syntax:
+        return alg_output(alg)
+
+    return alg
