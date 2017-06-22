@@ -1,3 +1,6 @@
+'''
+Contains the Solver class.
+'''
 from cube import Cube
 from cross import Cross
 
@@ -10,10 +13,11 @@ class Solver(Cube):
     the solver is current on by using self.find_step.
 
     Parameters:
-    perm - (optional) The permutation of the cube. If no
+    perm - (default 0) The permutation of the cube. If no
            permutation is given then the solved cube is given
            following the rules laid out in the Cube class
     """
+
     def __init__(self, perm=0):
         Cube.__init__(self, perm)
         self.solving_alg = ''
@@ -27,7 +31,7 @@ class Solver(Cube):
 
         Parameters:
         alg - Algorithm to apply to the cube
-        alg_input - (optional) If True, will assume alg is
+        alg_input - (default False) If True, will assume alg is
                     written in cubing notation. If False,
                     will assume alg is written as the coding
                     syntax
@@ -51,7 +55,7 @@ class Solver(Cube):
         solved_cube.apply_alg(rotation_xz)
 
         # Rotate correct front face
-        for i in range(3):
+        for _ in range(3):
             ffc = ''.join(solved_cube.perm[(0, 0, 1)])
             if ffc == front_face_color:
                 break
@@ -64,32 +68,31 @@ class Solver(Cube):
 
         for coord, color in self.perm.items():
             # Counts number of cross edges that are correct
-            if coord[1] == -1 and coord.count(0) == 1:
-                if color == solved_cube.perm[coord]:
-                    cross_edges += 1
+            if (coord[1] == -1 and
+                    coord.count(0) == 1 and
+                    color == solved_cube.perm[coord]):
+                cross_edges += 1
             # Counts number of f2l pairs inserted
-            elif coord[1] != 1 and coord.count(0) != 2:
-                if color == solved_cube.perm[coord]:
-                    f2l_edges_and_corners += 1
+            elif (coord[1] != 1 and
+                  coord.count(0) != 2 and
+                  color == solved_cube.perm[coord]):
+                f2l_edges_and_corners += 1
             # Counts number of correctly orientated and
             # correctly permutated U cubies
             elif coord[1] == 1 and coord.count(0) != 2:
-                if color == solved_cube.perm[coord]:
-                    pll_correct += 1
-                if color[1] == solved_cube.perm[coord][1]:
-                    oll_correct += 1
+                pll_correct += color == solved_cube.perm[coord]
+                oll_correct += color[1] == solved_cube.perm[coord][1]
 
-        if cross_edges == 4:
-            if f2l_edges_and_corners == 8:
-                if oll_correct == 8:
-                    if pll_correct == 8:
-                        self.step = 'solved'
-                    else:
-                        self.step = 'pll'
-                else:
-                    self.step = 'oll'
-            else:
-                self.step = 'f2l'
+        correct = [cross_edges == 4, f2l_edges_and_corners == 8,
+                   oll_correct == 8, pll_correct == 8]
+        if all(correct):
+            self.step = 'solved'
+        elif all(correct[0:3]):
+            self.step = 'pll'
+        elif all(correct[0:2]):
+            self.step = 'oll'
+        elif correct[0]:
+            self.step = 'f2l'
         else:
             self.step = 'cross'
 
@@ -101,16 +104,21 @@ class Solver(Cube):
 
         self.cross_color = cross.cross_color
         self.cross_alg = cross.alg
+        self.open_sets = cross.open_sets
+        self.closed_sets = cross.closed_sets
 
         self.apply_alg(self.cross_alg)
 
     def solve_f2l(self):
+        '''TODO'''
         pass
 
     def solve_oll(self):
+        '''TODO'''
         pass
 
     def solve_pll(self):
+        '''TODO'''
         pass
 
     def solve_it(self):

@@ -1,10 +1,13 @@
-from matplotlib.pyplot import figure
-from numpy import meshgrid
+'''
+Contains the Cube class.
+'''
 from itertools import product
+import matplotlib.pyplot as plt
+from numpy import meshgrid
 from mpl_toolkits.mplot3d import Axes3D
 
 from algorithms.tools import alg_to_code
-from algorithms.alg_dicts import param_dict, turn_dict
+from algorithms.alg_dicts import PARAM_DICT, TURN_DICT
 
 
 class Cube:
@@ -30,13 +33,14 @@ class Cube:
     to make the input of custom permuations simpler.
 
     Parameters:
-    perm - (optional) The permuation of the cube as described above. If no perm
-           is given, a solved cube is assumed with a white Up face and green
-           Front face. Perm can also be given as a dict that does not need to
-           be converted
+    perm - (default 0) The permuation of the cube as described above. If no
+           perm is given, a solved cube is assumed with a white Up face and
+           green Front face. Perm can also be given as a dict that does not
+           need to be converted
     """
+
     def __init__(self, perm=0):
-        if type(perm) == dict:
+        if isinstance(perm, dict):
             self.perm = perm
         else:
             if perm == 0:
@@ -45,7 +49,8 @@ class Cube:
 
             self.perm = self._convert_perm(perm)
 
-    def _convert_perm(self, perm):
+    @staticmethod
+    def _convert_perm(perm):
         """
         Converts the permuation from a six element list of
         nine char strings representing the stickers on each
@@ -60,10 +65,10 @@ class Cube:
         for side in perm:
             face_list, row_str = [], ''
 
-            for sticker in range(len(side)):
-                row_str += side[sticker]
+            for n, sticker in enumerate(side):
+                row_str += sticker
 
-                if (sticker + 1) % 3 == 0:
+                if not (n + 1) % 3:
                     face_list.append(list(row_str))
                     row_str = ''
 
@@ -110,7 +115,7 @@ class Cube:
         side - The side of the face to turn or the rotation
                to do. Can be 'u', 'l', 'f', 'r', 'b', 'd',
                'm', 'x', 'y' or 'z'
-        dl - (optional) Will do a double layer turn of
+        dl - (default False) Will do a double layer turn of
              'side'. This will not work with the middle slice
              'm' or rotations 'x', 'y', 'z'
         """
@@ -129,25 +134,17 @@ class Cube:
                             'It is not the middle slice or a rotation.')
 
         # Checks if it's a rotation or turn
-        if side in ['x', 'y', 'z']:
-            rotate = True
-        else:
-            rotate = False
+        rotate = side in ['x', 'y', 'z']
 
         # Finds equivalent face to turn
-        if side == 'x':
-            face = 'r'
-        elif side == 'y':
-            face = 'u'
-        elif side == 'z':
-            face = 'f'
-        elif side == 'm':
-            face = 'l'
+        if side in ['x', 'y', 'z', 'm']:
+            equiv_face = {'x': 'r', 'y': 'u', 'z': 'f', 'm': 'l'}
+            face = equiv_face[side]
         else:
             face = side
 
         # Get the right parameters for the cubie rotation
-        p = param_dict[ttype][face]
+        p = PARAM_DICT[ttype][face]
         new_coords = {}
 
         # Choose correct layers to rotate
@@ -178,7 +175,7 @@ class Cube:
 
         Parameters:
         alg - Algorithm to apply to the cube
-        alg_input - (optional) If True, will assume alg is
+        alg_input - (default False) If True, will assume alg is
                     written in cubing notation. If False,
                     will assume alg is written as the
                     coding syntax
@@ -187,26 +184,26 @@ class Cube:
             alg = alg_to_code(alg)
 
         for turn in alg:
-            self.turn_rotate(*turn_dict[turn])
+            self.turn_rotate(*TURN_DICT[turn])
 
     def graph_cube(self):
         """
         Graphs the cube for easy visualization.
         """
-        X, Y = meshgrid([0, 1], [0, 1])
-        Z = 0.5
+        x, y = meshgrid([0, 1], [0, 1])
+        z = 0.5
 
         # Since orange must be spelled out
-        cv = {}
+        perm_colors = {}
         colors = {'': '', 'w': 'w', 'y': 'y', 'g': 'g',
                   'b': 'b', 'r': 'r', 'o': 'orange'}
         for cubie in self.perm:
             color = self.perm[cubie]
-            cv[cubie] = [colors[color[0]],
-                         colors[color[1]],
-                         colors[color[2]]]
+            perm_colors[cubie] = [colors[color[0]],
+                                  colors[color[1]],
+                                  colors[color[2]]]
 
-        fig = figure()
+        fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.set_xlim(-1, 2)
         ax.set_ylim(-1, 2)
@@ -214,19 +211,19 @@ class Cube:
 
         # If the cubie has some coordinate, it will create
         # a square at that coordinate
-        for cubie in cv:
+        for cubie in perm_colors:
             if cubie[0] != 0:
-                ax.plot_surface(Y + cubie[2],
-                                Z + cubie[0] * 1.5,
-                                X + cubie[1],
-                                color=cv[cubie][0])
+                ax.plot_surface(y + cubie[2],
+                                z + cubie[0] * 1.5,
+                                x + cubie[1],
+                                color=perm_colors[cubie][0])
             if cubie[1] != 0:
-                ax.plot_surface(Y + cubie[2],
-                                X + cubie[0],
-                                Z + cubie[1] * 1.5,
-                                color=cv[cubie][1])
+                ax.plot_surface(y + cubie[2],
+                                x + cubie[0],
+                                z + cubie[1] * 1.5,
+                                color=perm_colors[cubie][1])
             if cubie[2] != 0:
-                ax.plot_surface(Z + cubie[2] * 1.5,
-                                X + cubie[0],
-                                Y + cubie[1],
-                                color=cv[cubie][2])
+                ax.plot_surface(z + cubie[2] * 1.5,
+                                x + cubie[0],
+                                y + cubie[1],
+                                color=perm_colors[cubie][2])

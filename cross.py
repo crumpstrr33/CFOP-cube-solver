@@ -7,8 +7,7 @@ from collections import deque
 from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
 
 # So... looking good. Still some problems. Don't want to arbitrarilty restrict
-# it with the 9 move cutoff. Also, flip penalty 1 or 2? I'm leaning towards 2.
-# Lastly, a weight on alg length? I'm leaning towards a weight of 1
+# it with the 9 move cutoff.
 
 # A FP of 2 makes sense because a bad flipped edge can be thought of as being
 # one quarter turn away from a good flipped edge (and one quarter turn has a
@@ -24,11 +23,11 @@ class Cross:
     This class solves the cross on the Down face for a given permutation.
 
     It solves it using an A* pathfinding algorithm where each new node is a
-    CrossNode object. The list containing the nodes is sorted via a heap sort
-    where new nodes are appended and sorted up the tree since only the node
-    with the lowest metric is needed.
+    CrossNode object. The list containing the nodes is sorted via a
+    breadth-first binary tree where new nodes are appended and sorted up the
+    tree since only the node with the lowest metric is needed.
 
-    There is an artificial cutoff at 10 moves. Since 10+ algorithms are always
+    There is an artificial cutoff at 11 moves. Since over 11 moves are always
     superfluous for a cross.
 
     Parameters:
@@ -161,7 +160,7 @@ class Cross:
 
     def _move_up(self, cn):
         """
-        Appends cn to the end of open_set and move it up the heap.
+        Appends cn to the end of open_set and move it up the tree.
         """
         self.open_set.append(cn)
 
@@ -187,7 +186,7 @@ class Cross:
 
     def _move_down(self):
         """
-        Sorts the top node down the heap.
+        Sorts the top node down the tree.
         """
         set_len = len(self.open_set)
 
