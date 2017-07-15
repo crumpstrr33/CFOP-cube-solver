@@ -3,6 +3,7 @@ Contains the Solver class.
 '''
 from cube import Cube
 from cross import Cross
+from algorithms.tools import code_to_alg
 
 
 class Solver(Cube):
@@ -19,8 +20,39 @@ class Solver(Cube):
     """
 
     def __init__(self, perm=0):
-        Cube.__init__(self, perm)
+        super().__init__(perm)
         self.solving_alg = ''
+
+    @property
+    def inspect_alg(self):
+        return code_to_alg(self.ialg)
+
+    @property
+    def cross_alg(self):
+        return code_to_alg(self.calg)
+
+    @property
+    def f2l_alg(self):
+        return [code_to_alg(alg) for alg in self.falg]
+
+    @property
+    def oll_alg(self):
+        return code_to_alg(self.oalg)
+
+    @property
+    def pll_alg(self):
+        return code_to_alg(self.palg)
+
+    @property
+    def alg(self):
+        return {'Inspection': self.inspect_alg,
+                'Cross': self.cross_alg,
+                'F2L': {'1st Pair': self.f2l_alg[0],
+                        '2nd Pair': self.f2l_alg[1],
+                        '3rd Pair': self.f2l_alg[2],
+                        '4th Pair': self.f2l_alg[3]},
+                'OLL': self.oll_alg,
+                'PLL': self.pll_alg}
 
     def apply_alg(self, alg, alg_input=False):
         """
@@ -36,7 +68,7 @@ class Solver(Cube):
                     will assume alg is written as the coding
                     syntax
         """
-        Cube.apply_alg(self, alg, alg_input)
+        super().apply_alg(alg, alg_input)
         self.solving_alg += alg
 
     def find_step(self):
@@ -103,23 +135,26 @@ class Solver(Cube):
         cross = Cross(self.perm)
 
         self.cross_color = cross.cross_color
-        self.cross_alg = cross.alg
+        self.calg = cross.alg
         self.open_sets = cross.open_sets
         self.closed_sets = cross.closed_sets
 
-        self.apply_alg(self.cross_alg)
+        # TODO Add inspection (pick best cross)
+        self.ialg = ''
+
+        self.apply_alg(self.calg)
 
     def solve_f2l(self):
-        '''TODO'''
-        pass
+        # TODO
+        self.falg = ['', '', '', '']
 
     def solve_oll(self):
-        '''TODO'''
-        pass
+        # TODO
+        self.oalg = ''
 
     def solve_pll(self):
-        '''TODO'''
-        pass
+        # TODO
+        self.palg = ''
 
     def solve_it(self):
         """
