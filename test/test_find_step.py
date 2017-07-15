@@ -1,10 +1,16 @@
 from datetime import datetime as dt
+from sys import path
+CUBE_DIR = 'C:\\Users\\Jacob\\Documents\\coding_stuff\\Python\\CFOP_solver_3x3'
+if CUBE_DIR not in path:
+    path.insert(1, CUBE_DIR)
 
 from solver import Solver
 
+# TODO don't hard-code the testing perms somehow
+
 
 def test_find_step(success_dist=40, silent=False):
-    '''
+    """
     Checks the find_step method of the Solver class if it can find the correct
     step on the below permutations
 
@@ -13,7 +19,7 @@ def test_find_step(success_dist=40, silent=False):
                    successful test
     silent - (default False) If True, only a SUCCESS statement will be printed
              out for the entire group instead of for each part, if True
-    '''
+    """
     title = 'Checking the Solver.find_step method'
     if not silent:
         print(title + ':')
@@ -60,3 +66,5 @@ if __name__ == "__main__":
 
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
+
+    path.remove(CUBE_DIR)

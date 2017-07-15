@@ -1,12 +1,16 @@
 import numpy as np
 from datetime import datetime as dt
+from sys import path
+CUBE_DIR = 'C:\\Users\\Jacob\\Documents\\coding_stuff\\Python\\CFOP_solver_3x3'
+if CUBE_DIR not in path:
+    path.insert(1, CUBE_DIR)
 
 from solver import Solver
 import algorithms.tools as tl
 
 
 def test_turn(success_dist=40, silent=False):
-    '''
+    """
     Check the 6 different sets of turns: cwsl, cwdl, ccwsl, ccwdl, dtsl, dtdl
     cw = clockwise, ccw = counterclockwise, dt = double turn (180 degrees)
     sl = single layer, dl = double layer
@@ -16,7 +20,7 @@ def test_turn(success_dist=40, silent=False):
                    successful test
     silent - (default False) If True, only a SUCCESS statement will be printed
              out for the entire group instead of for each part, if True
-    '''
+    """
     title = 'Checking every turning move'
     if not silent:
         print(title + ':')
@@ -79,3 +83,5 @@ if __name__ == "__main__":
 
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
+
+    path.remove(CUBE_DIR)

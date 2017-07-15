@@ -1,10 +1,14 @@
 from datetime import datetime as dt
+from sys import path
+CUBE_DIR = 'C:\\Users\\Jacob\\Documents\\coding_stuff\\Python\\CFOP_solver_3x3'
+if CUBE_DIR not in path:
+    path.insert(1, CUBE_DIR)
 
 import algorithms.tools as tl
 
 
 def test_translate(success_dist=40, silent=False):
-    '''
+    """
     Check the translation methods from the cubing algorithm syntax into the
     code syntax and vis versa
 
@@ -13,7 +17,7 @@ def test_translate(success_dist=40, silent=False):
                    successful test
     silent - (default False) If True, only a SUCCESS statement will be printed
              out for the entire group instead of for each part, if True
-    '''
+    """
     title = 'Checking the translation methods'
     if not silent:
         print(title + ':')
@@ -59,3 +63,5 @@ if __name__ == "__main__":
 
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
+
+    path.remove(CUBE_DIR)

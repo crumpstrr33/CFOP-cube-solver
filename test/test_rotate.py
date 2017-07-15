@@ -1,12 +1,16 @@
 import numpy as np
 from datetime import datetime as dt
+from sys import path
+CUBE_DIR = 'C:\\Users\\Jacob\\Documents\\coding_stuff\\Python\\CFOP_solver_3x3'
+if CUBE_DIR not in path:
+    path.insert(1, CUBE_DIR)
 
 from solver import Solver
 import algorithms.tools as tl
 
 
 def test_rotate(success_dist=40, silent=False):
-    '''
+    """
     Check the 3 sets of rotations: cw, ccw, dt
     cw = clockwise, ccw = counterclockwise, dt = double turn (180 degrees)
 
@@ -15,7 +19,7 @@ def test_rotate(success_dist=40, silent=False):
                    successful test
     silent - (default False) If True, only a SUCCESS statement will be printed
              out for the entire group instead of for each part, if True
-    '''
+    """
     title = 'Checking every rotation move'
     if not silent:
         print(title + ':')
@@ -67,3 +71,5 @@ if __name__ == "__main__":
 
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
+
+    path.remove(CUBE_DIR)
