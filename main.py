@@ -30,7 +30,7 @@ def main(perm):
             cube.solve_cross()
             t1 = dt.now()
 
-            alg_len = len(cube.cross_alg)
+            alg_len = len(tl.alg_to_code(cube.cross_alg))
             tot_time = (t1 - t0).total_seconds() * 1000
 
             lens[n] = alg_len
@@ -42,7 +42,7 @@ def main(perm):
             print('Solving for {} face took '.format(cross_center) +
                   '{:.3f} ms and is {} turns long:'.format(tot_time, alg_len))
             print('Algorithm: {}'.format(
-                    tl.alg_output(cube.solving_alg, True)))
+                    tl.code_to_alg(cube.solving_alg)))
             print('Number of open/closed sets: ' +
                   '{}/{}\n'.format(cube.open_sets, cube.closed_sets))
 
@@ -56,16 +56,16 @@ def main(perm):
 
     print('Average turn length:    {:.3f} turns'.format(len_avg))
     print('Average time for cross: {:.3f} ms'.format(time_avg))
-    print('Average number of open/closed sets: {:.3f}/{:.3f}'.format(
-                                                        open_avg, closed_avg))
+    print('Average number of open/closed sets: {:.0f}/{:.0f}'.format(
+            open_avg, closed_avg))
 
 if __name__ == "__main__":
     scramble = tl.random_scramble(20)
     cube = Cube()
-    cube.apply_alg(scramble, True)
+    cube.apply_alg(scramble)
     perm = tl.dict_to_list(cube.perm)
 
-    print('Use:\n{}\n'.format(scramble))
+    print('Use:\n{}\n'.format(tl.code_to_alg(scramble)))
     print('Start with:\n{}\n'.format(perm))
 
     main(perm)

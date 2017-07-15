@@ -3,7 +3,7 @@ from operator import add
 import itertools
 
 from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
-from algorithms.tools import alg_output
+from algorithms.tools import code_to_alg
 
 scramble = "R2 D B2 U L2 F2 D2 L2 F2 D' U L' D' B' D U B2 L2 F' L' B2"
 
@@ -37,7 +37,7 @@ class F2L:
             self.goal_perm.update(self._goal_f2l_pair(f2l_pair))
 
             print('Solving for:', f2l_pair)
-            if False:#'r' in f2l_pair:
+            if False:  # 'r' in f2l_pair:
                 print('INIT_PERM')
                 print(self.init_perm)
                 print('GOAL_PERM')
@@ -162,7 +162,7 @@ class F2L:
             if not current.h_cost:
                 print('Open/Closed sets: {}/{}'.format(
                                     len(self.open_set), len(closed_set)))
-                print('Alg is:', alg_output(current.alg))
+                print('Alg is:', code_to_alg(current.alg))
                 print('----------------------------', flush=True)
                 return current.alg, current.f2l_perm
 

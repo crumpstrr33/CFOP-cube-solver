@@ -27,19 +27,22 @@ def alg_to_code(alg):
     code = ''
     alg_len = len(alg) - 1
 
-    ele_alg = 'ulfrbdMxyzULFRBD'
-    ele_code = '1234567890!@#$%^'
+    alg_chars = 'ulfrbdMxyzULFRBD'
+    code_chars = '1234567890!@#$%^'
 
     # Checks if syntax is correct
-    for turn in alg:
-        if turn in ele_code.replace('2', ''):
-            raise Exception('Incorrect syntax;' +
-                            'found {} in passed algorithm'.format(turn))
+    for n, turn in enumerate(alg):
+        if turn not in alg_chars + "2' ":
+            raise Exception('Incorrect syntax; ' +
+                            "found '{}' in passed algorithm: ".format(turn) +
+                            '{}'.format(alg))
+        elif turn == '2' and alg[n - 1] not in alg_chars:
+            raise Exception('Incorrect syntax; ' +
+                            "Found multiple 2's in a row in {}.".format(alg))
 
     for n, let in enumerate(alg):
-        # Don't do anything for these since they are modifiers
-        # and not actual turns
-        if let in ["'", '2', 'END', " "]:
+        # Don't do anything for these since they are modifiers, not turns
+        if let in ["'", '2', ' ']:
             continue
 
         if n == alg_len:
@@ -48,7 +51,7 @@ def alg_to_code(alg):
 
         # Double turns
         if alg[n + 1] == '2':
-            code += ele_code[ele_alg.index(let)]
+            code += code_chars[alg_chars.index(let)]
         # CCW turns
         elif alg[n + 1] == "'":
             # Rotations
@@ -62,7 +65,7 @@ def alg_to_code(alg):
                 code += ascii_lowercase[ascii_lowercase.index(let) - 1]
             else:
                 code += ascii_uppercase[ascii_uppercase.index(let) - 1]
-        # CW turns and rotations
+        # CW turns/rotations
         else:
             code += let
 
@@ -77,20 +80,21 @@ def code_to_alg(code):
     code - The code syntax to convert to cubing algorithm
     """
     alg = ''
-    ele_alg = 'ulfrbdMxyzULFRBD'
-    ele_code = '1234567890!@#$%^'
+    alg_chars = 'ulfrbdMxyzULFRBD'
+    code_chars = '1234567890!@#$%^'
     ccw_lets = ['a', 'c', 'e', 'k', 'q', 't']
 
     # Checks if syntax is correct
-    for turn in alg:
-        if turn in ["'", '2']:
-            raise Exception('Incorrect syntax;'
-                            'found {} in passed algorithm'.format(turn))
+    for turn in code:
+        if turn.lower() not in code_chars + 'ulfrbdmxyztkeqac':
+            raise Exception('Incorrect syntax; '
+                            "found '{}' in passed algorithm: ".format(turn) +
+                            '{}'.format(code))
 
-    for let in code:
+    for n, let in enumerate(code):
         # Double turns
-        if let in ele_code:
-            alg += ele_alg[ele_code.index(let)] + '2'
+        if let in code_chars:
+            alg += alg_chars[code_chars.index(let)] + '2'
         # CCW rotations
         elif let in ['X', 'Y', 'Z']:
             alg += let.lower() + "'"
@@ -106,6 +110,9 @@ def code_to_alg(code):
         # CW turns and rotations
         else:
             alg += let
+
+        if n + 1 != len(code):
+            alg += ' '
 
     return alg
 
@@ -146,33 +153,7 @@ def dict_to_list(cube_dict):
     return str_perm
 
 
-def alg_output(alg, code=True):
-    """
-    Returns a string for an algorithm with spaces between each move for easy
-    readability.
-
-    Parameters:
-    alg - Algorithm to which to add spaces
-    code - (default True) will first translate from code syntax to algorithm
-           before adding spaces
-    """
-    if code:
-        alg = code_to_alg(alg)
-
-    proper_alg = ''
-    alg_len = len(alg)
-
-    for n, turn in enumerate(alg):
-        proper_alg += turn
-
-        if n + 1 != alg_len:
-            if alg[n + 1] not in ["2", "'"]:
-                proper_alg += ' '
-
-    return proper_alg
-
-
-def random_scramble(num_turns, alg_syntax=True):
+def random_scramble(num_turns, alg_syntax=False):
     '''
     Creates a random scramble for a cube. Duplicate moves such as D D' or F F2
     and so on are avoided along with 'sandwich moves' such as L R L2 where the
@@ -215,6 +196,6 @@ def random_scramble(num_turns, alg_syntax=True):
             dupe_opp_turn = ''
 
     if alg_syntax:
-        return alg_output(alg)
+        return code_to_alg(alg)
 
     return alg
