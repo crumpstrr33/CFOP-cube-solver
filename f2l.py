@@ -1,125 +1,131 @@
 from collections import deque
 from operator import add
-import itertools
+from itertools import permutations
 
 from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
 from algorithms.tools import code_to_alg
 
-scramble = "R2 D B2 U L2 F2 D2 L2 F2 D' U L' D' B' D U B2 L2 F' L' B2"
+'''
+def print_dict(d):
+    for stickers, cordlor in d.items():
+        print('{:<29}: ({:>2}, {:>2}, {:>2}) ({:<1}, {:<1}, {:<1})'.format(
+              ', '.join(stickers), *cordlor[0], *cordlor[1]))
+'''
 
 
 class F2L:
 
-    def __init__(self, perm, f2l_order):
-        self.perm = {tuple(color): coord for coord, color in perm.items()}
-        self.f2l_order = f2l_order
+    def __init__(self, perm, f2l_pair):
+        self.perm = {self._sticker_val(color): (list(coord), color)
+                     for coord, color in perm.items()}
 
-        self.alg = []
         self.d_color = ''.join(perm[(0, -1, 0)])
         self.u_color = ''.join(perm[(0, 1, 0)])
-        # The 6 centers of the cube
+
         self.centers = self._centers()
-        # The 4 solved cross edges
         self.cross = self._cross()
-        # The permutation of the 12 relevant cubies before any moves
-        self.abs_init_perm = self._abs_init_perm()
-        self.abs_init_perm.update(self.cross)
-        # The permutation to reach for each f2l pair
-        self.goal_perm = self.cross.copy()
-        # The initial permutation for each f2l pair
-        self.init_perm = self.cross.copy()
 
-        for f2l_pair in self.f2l_order:
-            # Inital state before F2L
-            self.init_perm.update(self._init_f2l_pair(f2l_pair))
+        self.init_perm = self._init_perm(f2l_pair)
+        self.goal_perm = self._goal_perm(f2l_pair)
 
-            # Find correct permutation of current f2l pair
-            self.goal_perm.update(self._goal_f2l_pair(f2l_pair))
+        self.alg = self._find_path()
 
-            print('Solving for:', f2l_pair)
-            if False:  # 'r' in f2l_pair:
-                print('INIT_PERM')
-                print(self.init_perm)
-                print('GOAL_PERM')
-                print(self.goal_perm, flush=True)
+    @staticmethod
+    def _sticker_val(color):
+        """
+        Creates the correct form the for the value of the dicts used in this
+        class which is a frozenset of strings representing all the
+        permutations of the stickers of the cubie. It either has 6 (corner)
+        elements, 2 (edge) elements or 1 (center) elements.
 
-            alg, next_f2l_perm = self._find_path()
-            self.alg.append(alg)
-            self.init_perm = next_f2l_perm
+        Parameters:
+        color - The 3-element list of the color of a cubie
+                (e.g. ['o', 'y', ''])
+        """
+        return frozenset(map(lambda x: ''.join(x), permutations(color)))
 
     def _centers(self):
+        """
+        Returns a dict of the 6 centers
+        """
+        colors = ['w', 'o', 'g', 'r', 'b', 'y']
         centers = {}
 
-        for color, coord in self.perm.items():
-            # Two zeros means it's a center
-            if coord.count(0) == 2:
-                centers[color] = coord
+        for color in colors:
+            stickers = frozenset(color)
+            centers[stickers] = self.perm[stickers]
 
         return centers
 
     def _cross(self):
+        """
+        Returns a dict of the 4 cross edges
+        """
+        colors = ['w', 'o', 'g', 'r', 'b', 'y']
+        colors.remove(self.d_color)
+        colors.remove(self.u_color)
         cross = {}
-        for color, coord in self.perm.items():
-            if coord.count(0) == 1 and self.d_color in color:
-                cross[color] = coord
+
+        for color in colors:
+            stickers = frozenset((color + self.d_color, self.d_color + color))
+            cross[stickers] = self.perm[stickers]
 
         return cross
 
-    def _abs_init_perm(self):
-        init_perm = {}
+    def _init_perm(self, f2l_pair):
+        """
+        Returns a dict of the 4 cross edges and an F2L pair's current position
 
-        # Find corners
-        for color, coord in self.perm.items():
-            # Make sure it's a corner piece
-            if 0 not in coord:
-                # Make sure it's a piece of the down face
-                if self.d_color in color:
-                    init_perm[color] = coord
+        Parameters:
+        f2l_pair - F2L pair to add in the form of a 2 char string
+                   (e.g. 'br' for the blue-red F2L pair)
+        """
+        init_perm = self.cross.copy()
+        edge_val = self._sticker_val(f2l_pair)
+        corner_val = self._sticker_val(f2l_pair + self.d_color)
 
-        # Find middle edges
-        for color, coord in self.perm.items():
-            # Make sure it's an edge piece
-            if coord.count(0) == 1:
-                # Make sure it's not on the up or down face
-                if self.d_color not in color and self.u_color not in color:
-                    init_perm[color] = coord
+        init_perm[edge_val] = self.perm[edge_val]
+        init_perm[corner_val] = self.perm[corner_val]
 
         return init_perm
 
-    def _init_f2l_pair(self, corner_colors):
-        init_f2l_pair = {}
-        edge_colors = ''.join(corner_colors).replace(self.d_color, '')
+    def _goal_perm(self, f2l_pair):
+        """
+        Returns a dict of the 4 cross edges and an F2L pair's solved position
 
-        for color, coord in self.abs_init_perm.items():
-            if edge_colors[0] in color and edge_colors[1] in color:
-                if self.u_color not in color:
-                    init_f2l_pair[color] = coord
+        Parameters:
+        f2l_pair - F2L pair to add in the form of a 2 char string
+                   (e.g. 'br' for the blue-red F2L pair)
+        """
+        edge_val = self._sticker_val(f2l_pair)
+        corner_val = self._sticker_val(f2l_pair + self.d_color)
 
-        return init_f2l_pair
+        pair_centers = (self.centers[frozenset(f2l_pair[0])],
+                        self.centers[frozenset(f2l_pair[1])])
+        goal_perm = self.init_perm.copy()
 
-    def _goal_f2l_pair(self, f2l_pair):
-        corner_coord, corner_color = (0, 0, 0), ['', '', '']
+        edge_coord = list(map(add, pair_centers[0][0], pair_centers[1][0]))
+        edge_color = list(map(add, pair_centers[0][1], pair_centers[1][1]))
 
-        for color, coord in self.centers.items():
-            sticker = ''.join(color)
+        solved_entries = {}
+        solved_entries[edge_val] = (edge_coord, edge_color)
 
-            # Find correct position and color order based on where centers are
-            if ''.join(color) in f2l_pair:
-                corner_coord = tuple((map(add, corner_coord, coord)))
-                corner_color[color.index(sticker)] = sticker
+        corner_coord = list(map(add, edge_coord, [0, -1, 0]))
+        corner_color = list(map(add, edge_color, ['', self.d_color, '']))
+        solved_entries[corner_val] = (corner_coord, corner_color)
 
-        corner_color = tuple(corner_color)
-        edge_color = (corner_color[0], '', corner_color[2])
-        edge_coord = (corner_coord[0], 0, corner_coord[2])
-        goal_coord = {corner_color: corner_coord, edge_color: edge_coord}
+        goal_perm.update(solved_entries)
 
-        return goal_coord
+        return goal_perm
 
     def _find_path(self):
+        """
+        Completes A* pathfinding for the current F2L pair
+        """
         fn = F2LNode(self.init_perm, self.goal_perm, '', self.d_color)
 
         # Every single layer face turn
-        turn_space = 'UT!LK@FE#RQ$BA%DC^'
+        turn_space = 'UT!LK@FE#RQ$BA%' #'UT!LK@FE#RQ$BA%DC^'
         self.open_set = deque([fn])
         closed_set = []
 
@@ -156,7 +162,7 @@ class F2L:
             # Compare it downwards
             self._move_down()
             # Add to closed set
-            closed_set.append(current.f2l_perm)
+            closed_set.append(current.cur_perm)
 
             # Return if perm is equal to goal perm
             if not current.h_cost:
@@ -164,7 +170,7 @@ class F2L:
                                     len(self.open_set), len(closed_set)))
                 print('Alg is:', code_to_alg(current.alg))
                 print('----------------------------', flush=True)
-                return current.alg, current.f2l_perm
+                return current.alg
 
             # Create new objects and put in open_set to
             # check next if perm hasn't already been found
@@ -267,13 +273,13 @@ class F2L:
 
 class F2LNode:
 
-    def __init__(self, f2l_perm, goal_perm, alg, d_color):
+    def __init__(self, cur_perm, goal_perm, alg, d_color):
         # Constant for every F2LNode object
         self.goal_perm = goal_perm
         self.d_color = d_color
 
         # Constant for each F2LNode object
-        self.f2l_perm = f2l_perm
+        self.cur_perm = cur_perm
         self.alg = alg
 
         # Metrics
@@ -283,51 +289,44 @@ class F2LNode:
         self.f_cost = self.h_cost + self.g_cost
 
     def _flip_penalty(self):
-        bad_flip = 0
-
-        for colors, coord in self.f2l_perm.items():
-            # Check F2L edge piece
-            if coord[1] == 0 and self.d_color not in colors:
-                # Edge piece is flipped
-                if colors not in self.goal_perm:
-                    bad_flip += 1
-            # Check F2L corner piece
-            if coord[1] == -1 and self.d_color in colors:
-                if colors[1] != self.d_color:
-                    bad_flip += 1
-
-        return bad_flip
+        return 0
 
     def _metric(self):
+        """
+        Sums the difference of each coordinate dimension
+        """
         tot_distance = 0
 
-        for color, coord in self.f2l_perm.items():
-            for color_rand in itertools.permutations(color):
-                try:
-                    distance = sum(map(lambda x, y: abs(x - y),
-                                       coord, self.goal_perm[color_rand]))
-                    tot_distance += distance
-                    break
-                except:
-                    pass
+        for stickers, cordlor in self.cur_perm.items():
+            distance = sum(map(lambda x, y: abs(x - y),
+                               cordlor[0], self.goal_perm[stickers][0]))
+            tot_distance += distance
 
         return tot_distance
 
     def _turn_rotate(self, ttype, side):
+        """
+        Applies a turn to analgous to the Cube class method. Here, a new dict
+        is returned instead of updating current perm.
+        """
         # Get the right parameters for the cubie rotation
         p = PARAM_DICT[ttype][side]
         new_perm = {}
 
-        for color, coord in self.f2l_perm.items():
+        for stickers, cordlor in self.cur_perm.items():
+            coord, color = cordlor[0], cordlor[1]
             if coord[p[0]] == p[1]:
-                new_perm[(color[p[3]], color[p[5]], color[p[7]])] = \
-                         (p[2] * coord[p[3]],
-                          p[4] * coord[p[5]],
-                          p[6] * coord[p[7]])
+                new_perm[stickers] = ((p[2] * coord[p[3]],
+                                       p[4] * coord[p[5]],
+                                       p[6] * coord[p[7]]),
+                                      [color[p[3]], color[p[5]], color[p[7]]])
             else:
-                new_perm[color] = coord
+                new_perm[stickers] = cordlor
 
         return new_perm
 
     def apply_turn(self, turn):
+        """
+        Analgous to Cube class method except only works for one turn at a time.
+        """
         return self._turn_rotate(*TURN_DICT[turn])
