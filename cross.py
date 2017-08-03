@@ -1,7 +1,7 @@
-'''
-Contains the Cross class along with the CrossNode classed used to find the
+"""
+Contains the Cross class along with the CrossNode class used to find the
 cross algorithm via A* pathfinding.
-'''
+"""
 from collections import deque
 
 from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
@@ -79,9 +79,9 @@ class Cross:
         return solved_perm
 
     def _solved_side_colors(self):
-        '''
+        """
         Finds side center colors in the order: F R B L
-        '''
+        """
         # The order wanted
         order = [(0, -1, 1), (1, -1, 0), (0, -1, -1), (-1, -1, 0)]
         side_colors = []
@@ -110,7 +110,7 @@ class Cross:
             current = self.open_set[0]
 
             # Find current turn_space
-            if current.alg != '':
+            if current.alg:
                 turn = current.alg[-1]
 
                 last = turn_space.index(turn)
@@ -184,7 +184,7 @@ class Cross:
             else:
                 return
 
-    def _move_down(self):
+    def _move_do1wn(self):
         """
         Sorts the top node down the tree.
         """
@@ -237,6 +237,49 @@ class Cross:
                 self._swap(cn_ind, cn_ld_ind)
             else:
                 return
+
+    def _move_down(self):
+            """
+            Sorts the top node down the heap.
+            """
+            set_len = len(self.open_set)
+
+            # Don't run if open_set is empty
+            if not set_len:
+                return
+
+            fn = self.open_set[0]
+            fn_val = fn.f_cost + fn.h_cost/100
+
+            while True:
+                fn_ind = self.open_set.index(fn)
+
+                left_ind = 2 * fn_ind + 1
+                right_ind = left_ind + 1
+
+                # Check if left node exists, if not we are finished
+                if set_len > left_ind:
+                    left = self.open_set[left_ind]
+                    left_val = left.f_cost + left.h_cost/100
+                else:
+                    return
+
+                # Check if right node exists
+                if set_len > right_ind:
+                    right = self.open_set[right_ind]
+                    right_val = right.f_cost + right.h_cost/100
+                else:
+                    right = None
+
+                # Left value must be less and either there is no right node or
+                # the left node is the lower choice
+                if (left_val < fn_val) and \
+                   (right is None or left_val <= right_val):
+                    self._swap(fn_ind, left_ind)
+                elif right is not None and right_val < fn_val:
+                    self._swap(fn_ind, right_ind)
+                else:
+                    return
 
     def _swap(self, i, j):
         """
@@ -355,9 +398,9 @@ class CrossNode:
         return min(min_tot_distance, abs_tot_distance), abs_tot_distance
 
     def _metric(self, end_pos):
-        '''
+        """
         Sums the difference of each coordinate dimension
-        '''
+        """
         tot_distance = 0
 
         for color, coord in self.cross_edges.items():
