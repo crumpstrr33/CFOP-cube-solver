@@ -1,7 +1,8 @@
 import numpy as np
 from datetime import datetime as dt
+from os import getcwd
 from sys import path
-CUBE_DIR = 'C:\\Users\\Jacob\\Documents\\coding_stuff\\Python\\CFOP_solver_3x3'
+CUBE_DIR = '\\'.join(getcwd().split('\\')[:-1])
 if CUBE_DIR not in path:
     path.insert(1, CUBE_DIR)
 
