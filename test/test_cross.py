@@ -15,22 +15,22 @@ def test_cross(solves=10, success_dist=40, silent=False):
     successfully finds a cross (and also the step finding Solver method)
 
     Parameters:
+    solves - (default 10) Number of random scrambles to solve the cross for
     success_dist - (default 40) Number of spaces SUCCESS is indented for a
                    successful test
-    solves - (default 10) Number of random scrambles to solve the cross for
     silent - (default False) If True, only a SUCCESS statement will be printed
-             out for the entire group instead of for each part, if True
+             out for the entire group instead of for each part.
     """
     title = 'Checking the cross finding algorithm'
     if not silent:
         print(title + ':')
-        print('-------------------------------------')
+        print('-' * (len(title) + 1))
     else:
         print(title + '...', end='')
 
     for rand in range(1, solves + 1):
         cube = Solver()
-        cube.apply_alg(tl.random_scramble(20, False))
+        cube.apply_alg(tl.random_scramble(20))
 
         start_perm = tl.dict_to_list(cube.perm)
 

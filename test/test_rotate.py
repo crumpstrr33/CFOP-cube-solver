@@ -19,12 +19,12 @@ def test_rotate(success_dist=40, silent=False):
     success_dist - (default 40) Number of spaces SUCCESS is indented for a
                    successful test
     silent - (default False) If True, only a SUCCESS statement will be printed
-             out for the entire group instead of for each part, if True
+             out for the entire group instead of for each part.
     """
     title = 'Checking every rotation move'
     if not silent:
         print(title + ':')
-        print('-----------------------------')
+        print('-' * (len(title) + 1))
     else:
         print(title + '...', end='')
 
