@@ -1,6 +1,6 @@
-'''
+"""
 Contains the Cube class.
-'''
+"""
 from itertools import product
 import matplotlib.pyplot as plt
 from numpy import meshgrid
@@ -186,44 +186,55 @@ class Cube:
         for turn in alg:
             self.turn_rotate(*TURN_DICT[turn])
 
-    def graph_cube(self):
+    def graph_cube(self, gap_color='k', gap_width=2, bg_color='w',
+                   w='ghostwhite', y='gold', g='forestgreen',
+                   b='midnightblue', r='crimson', o='darkorange'):
         """
-        Graphs the cube for easy visualization.
-        """
-        x, y = meshgrid([0, 1], [0, 1])
-        z = 0.5
+        Graphs the cube for easy visualization with optional arguments for
+        visual preference
 
-        # Since orange must be spelled out
+        Parameters:
+        gap_color - (default 'k') The color of the gap between all of the
+                     stickers
+        gap_width - (default 2) The width of the gap between of the stickers.
+        bg_color - (default 'w') The background color of the plot
+        w - (default ghostwhite) The color of the white stickers
+        y - (default gold) The color of the yellow stickers
+        g - (default forestgreen) The color of the green stickers
+        b - (default midnightblue) The color of the blue stickers
+        r - (default crimson) The color of the red stickers
+        o - (default darkorange) The color of the orange stickers
+        """
+        X, Y = meshgrid([0, 1], [0, 1])
+        Z = 0.5
+
+        # Creating the color scheme for each cubie
+        colors = {'w': w, 'y': y, 'g': g, 'b': b, 'r': r, 'o': o, '': ''}
         perm_colors = {}
-        colors = {'': '', 'w': 'w', 'y': 'y', 'g': 'g',
-                  'b': 'b', 'r': 'r', 'o': 'orange'}
         for cubie in self.perm:
-            color = self.perm[cubie]
-            perm_colors[cubie] = [colors[color[0]],
-                                  colors[color[1]],
-                                  colors[color[2]]]
+            c = self.perm[cubie]
+            perm_colors[cubie] = [colors[c[0]], colors[c[1]], colors[c[2]]]
 
+        # Create figure for plot
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.set_xlim(-1, 2)
         ax.set_ylim(-1, 2)
         ax.set_zlim(-1, 2)
+        ax.set_facecolor(bg_color)
+        ax.axis('off')
 
-        # If the cubie has some coordinate, it will create
-        # a square at that coordinate
+        # Will create square of appropriate color at appropriate coordinate
         for cubie in perm_colors:
             if cubie[0] != 0:
-                ax.plot_surface(y + cubie[2],
-                                z + cubie[0] * 1.5,
-                                x + cubie[1],
+                ax.plot_surface(Y + cubie[2], Z + cubie[0] * 1.5, X + cubie[1],
+                                edgecolors=gap_color, linewidth=gap_width,
                                 color=perm_colors[cubie][0])
             if cubie[1] != 0:
-                ax.plot_surface(y + cubie[2],
-                                x + cubie[0],
-                                z + cubie[1] * 1.5,
+                ax.plot_surface(Y + cubie[2], X + cubie[0], Z + cubie[1] * 1.5,
+                                edgecolors=gap_color, linewidth=gap_width,
                                 color=perm_colors[cubie][1])
             if cubie[2] != 0:
-                ax.plot_surface(z + cubie[2] * 1.5,
-                                x + cubie[0],
-                                y + cubie[1],
+                ax.plot_surface(Z + cubie[2] * 1.5, X + cubie[0], Y + cubie[1],
+                                edgecolors=gap_color, linewidth=gap_width,
                                 color=perm_colors[cubie][2])
