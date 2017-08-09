@@ -1,3 +1,7 @@
+"""
+Tests each step in the solving process.
+"""
+# PEP8 be damned, I must have this order to add to the path
 from datetime import datetime as dt
 from os import getcwd
 from sys import path
@@ -49,7 +53,7 @@ def test_solve(solves=10, success_dist=40, silent=False):
 
     Parameters:
     solves (default 10) Number of random scrambles to solve
-    success_dist - (default 40) Number of spaces SUCCESS is indented for a 
+    success_dist - (default 40) Number of spaces SUCCESS is indented for a
                    successful test
     silent - (default False) If True, onyl a SUCCESS statement will be printed
              out for the entire group intead of for each part.

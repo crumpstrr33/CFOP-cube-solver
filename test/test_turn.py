@@ -1,3 +1,7 @@
+"""
+Tests each possible turn for the cube.
+"""
+# PEP8 be damned, I must have this order to add to the path
 import numpy as np
 from datetime import datetime as dt
 from os import getcwd

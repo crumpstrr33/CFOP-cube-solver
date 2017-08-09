@@ -1,3 +1,7 @@
+"""
+Tests the rotation moves for the cube.
+"""
+# PEP8 be damned, I must have this order to add to the path
 import numpy as np
 from datetime import datetime as dt
 from os import getcwd
@@ -64,6 +68,7 @@ def test_rotate(success_dist=40, silent=False):
         print(' ' * (success_dist - len(title) - 3), 'SUCCESS', flush=True)
     else:
         print('')
+
 
 if __name__ == "__main__":
     t0 = dt.now()

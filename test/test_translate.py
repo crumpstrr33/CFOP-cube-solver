@@ -1,3 +1,8 @@
+"""
+Tests the translation functions, code_to_alg and alg_to_code,
+found in algorithms/tools.
+"""
+# PEP8 be damned, I must have this order to add to the path
 from datetime import datetime as dt
 from os import getcwd
 from sys import path
