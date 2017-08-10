@@ -1,14 +1,10 @@
 """
 Tests each step in the solving process.
 """
-# PEP8 be damned, I must have this order to add to the path
 from datetime import datetime as dt
-from os import getcwd
-from sys import path
-CUBE_DIR = '\\'.join(getcwd().split('\\')[:-1])
-if CUBE_DIR not in path:
-    path.insert(1, CUBE_DIR)
+import sys
 
+import context
 from solver import Solver
 import algorithms.tools as tl
 
@@ -65,12 +61,13 @@ def test_solve(solves=10, success_dist=40, silent=False):
     else:
         print(title + '...', end='')
 
-    for rand in range(1, solves + 1):
+    for n in range(1, solves + 1):
         cube = Solver()
         cube.apply_alg(tl.random_scramble(20))
 
         if not silent:
-            comment = 'Checking random algorithm number {:>2}...'.format(rand)
+            comment = 'Checking random algorithm number {n:>{d}}...'.format(
+                      n=n, d=len(str(solves)))
             print(comment, end='', flush=True)
 
         test_cross(cube)
@@ -95,4 +92,4 @@ if __name__ == "__main__":
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
 
-    path.remove(CUBE_DIR)
+    sys.path.remove(context.CUBE_DIR)

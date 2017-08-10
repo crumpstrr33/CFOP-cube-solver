@@ -1,15 +1,14 @@
 """
 Unit tests for the sake of sanity
 """
+from datetime import datetime as dt
+import sys
+
+import context
 from test_solve import test_solve
 from test_rotate import test_rotate
 from test_translate import test_translate
 from test_turn import test_turn
-
-from datetime import datetime as dt
-from os import getcwd
-from sys import path
-CUBE_DIR = '\\'.join(getcwd().split('\\')[:-1])
 
 
 def main(silent=True):
@@ -23,7 +22,7 @@ def main(silent=True):
     test_turn(silent=silent)
     test_rotate(silent=silent)
     test_translate(silent=silent)
-    test_solve(silent=silent)
+    test_solve(2, silent=silent)
     if silent:
         print('')
 
@@ -33,7 +32,7 @@ if __name__ == "__main__":
     main(False)
     t1 = dt.now()
 
-    print('The checks took {:.3f} seconds.'.format(
-        (t1 - t0).total_seconds()))
+    print('The checks took {:.3f} ms.'.format(
+        (t1 - t0).total_seconds() * 1000))
 
-    path.remove(CUBE_DIR)
+    sys.path.remove(context.CUBE_DIR)

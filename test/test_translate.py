@@ -2,14 +2,10 @@
 Tests the translation functions, code_to_alg and alg_to_code,
 found in algorithms/tools.
 """
-# PEP8 be damned, I must have this order to add to the path
 from datetime import datetime as dt
-from os import getcwd
-from sys import path
-CUBE_DIR = '\\'.join(getcwd().split('\\')[:-1])
-if CUBE_DIR not in path:
-    path.insert(1, CUBE_DIR)
+import sys
 
+import context
 import algorithms.tools as tl
 
 
@@ -70,4 +66,4 @@ if __name__ == "__main__":
     print('The checks took {:.3f} seconds.'.format(
         (t1 - t0).total_seconds()))
 
-    path.remove(CUBE_DIR)
+    sys.path.remove(context.CUBE_DIR)
