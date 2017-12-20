@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from numpy import meshgrid
 from mpl_toolkits.mplot3d import Axes3D
 
-from algorithms.tools import alg_to_code
-from algorithms.alg_dicts import PARAM_DICT, TURN_DICT
+from cfop.algorithms.tools import alg_to_code
+from cfop.algorithms.alg_dicts import PARAM_DICT, TURN_DICT
 
 
 class Cube:
@@ -238,3 +238,5 @@ class Cube:
                 ax.plot_surface(Z + cubie[2] * 1.5, X + cubie[0], Y + cubie[1],
                                 edgecolors=gap_color, linewidth=gap_width,
                                 color=perm_colors[cubie][2])
+
+        plt.show()

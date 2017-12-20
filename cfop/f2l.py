@@ -6,7 +6,14 @@ from collections import deque
 from operator import add
 from itertools import permutations
 
-from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
+from cfop.algorithms.alg_dicts import TURN_DICT, PARAM_DICT
+
+# DEBUGGING
+import time
+from datetime import datetime as dt
+from pprint import pprint
+from cfop.algorithms.tools import code_to_alg, alg_to_code
+################################################
 
 
 class F2L:
@@ -76,7 +83,7 @@ class F2L:
         color - The 3-element list of the color of a cubie
                 (e.g. ['o', 'y', ''])
         """
-        return frozenset(map(lambda x: ''.join(x), permutations(color)))
+        return frozenset(map(''.join, permutations(color)))
 
     def _centers(self):
         """
@@ -172,26 +179,46 @@ class F2L:
         """
         f2l_key = [self._cubie_key(f2l_pair),
                    self._cubie_key(f2l_pair + self.d_color)]
-        slot_perm = {x: self.goal_perm[x] for x in f2l_key}
-        fn = F2LNode(self.init_perm, self.goal_perm, slot_perm, '',
-                     f2l_key, '', self.d_color)
+        slot_coord = tuple(self.goal_perm[f2l_key[0]][0])
+        f2lnode = F2LNode(self.init_perm, self.goal_perm, f2l_key, '',
+                          self.d_color, '', slot_coord)
 
         # Every single layer face turn
         turn_space = 'UT!LK@FE#RQ$BA%DC^'
-        self.open_set = deque([fn])
+        self.open_set = deque([f2lnode])
         closed_set = []
 
+        # DEBUGGING
+        debug_dict = {'go': alg_to_code("L' U2 B L B' L' U' L"),
+                      'gr': alg_to_code("U2 R2 U2 R' U' R U' R' U R'"),
+                      'bo': alg_to_code("U2 L' B L U L U' L2 B' L"),
+                      'br': alg_to_code("U' R' U' R U2 R' U R U' R' U R")}
         i = 0
+        t0 = dt.now()
+        ################################################
         while True:
             i += 1
 
             # Take object with lowest f_cost
             current = self.open_set.popleft()
-            # Helpful debugging, one print per iteration
-#            print('{:>3} == F Cost - {:>2} | H Cost - {:>2}'.format(
-#                    i, current.f_cost, current.h_cost) +
-#                  '| Loc - {:>2} | Alg - {}'.format(
-#                    current.slot_metric, code_to_alg(current.alg)))
+
+            # DEBUGGING
+            if False:#debug_dict[f2l_pair].startswith(current.alg):
+                template = '{:>5} ==> F Cost - {:>2} | Abs H Cost - {:>2} |' + \
+                           ' H Cost - {:>2} | PM - {:>2} | FP - {:>2} |' + \
+                           ' SA - {:>2} | Alg - {}'
+                c = current
+                print(template.format(i, c.f_cost, c.abs_h_cost, c.h_cost,
+                                      c.pair_metric, c.flip_penalty,
+                                      c.slot_turn,
+                                      code_to_alg(c.alg)))
+                # print('Goal Perm:')
+                # pprint(c.d1)
+                # print('\nNew Goal Perm:')
+                # pprint(c.d2)
+                # print('\n')
+                # time.sleep(0.3)
+            ################################################
 
             # Find current turn_space
             if current.alg:
@@ -216,7 +243,7 @@ class F2L:
                 turn_space_current = turn_space
 
             # Move last node to top of tree
-            self.open_set.rotate()
+            self.open_set.rotate(1)
             # Compare it downwards
             self._move_down()
             # Add to closed set
@@ -224,6 +251,11 @@ class F2L:
 
             # Return if perm is equal to goal perm
             if not current.abs_h_cost:
+                # DEBUGGING
+                # t1 = dt.now()
+                # delta_time = (t1 - t0).total_seconds() - 0.3 * len(current.alg)
+                # print('Total time: {:.3f} s\n'.format(delta_time))
+                ################################################
                 return current.alg, len(self.open_set), len(closed_set)
 
             # Create new objects and put in open_set to check next if
@@ -235,78 +267,78 @@ class F2L:
                 if new_perm in closed_set:
                     continue
 
-                fn = F2LNode(new_perm, self.goal_perm, current.slot_perm,
-                             current.slot_turn, f2l_key, new_alg, self.d_color)
-                self._move_up(fn)
+                f2lnode = F2LNode(new_perm, self.goal_perm, f2l_key, new_alg,
+                                  self.d_color, current.slot_turn, slot_coord)
+                self._move_up(f2lnode)
 
-    def _move_up(self, fn):
+    def _move_up(self, f2lnode):
         """
-        Appends fn to the end of open_set and move it up the heap.
+        Appends f2lnode to the end of open_set and move it up the heap.
         """
-        self.open_set.append(fn)
+        self.open_set.append(f2lnode)
 
         while True:
             # Node info, compare f_cost and h_cost at the same time
-            fn_ind = self.open_set.index(fn)
-            fn_val = fn.f_cost + fn.h_cost/100
+            f2lnode_ind = self.open_set.index(f2lnode)
+            f2lnode_val = f2lnode.f_cost + f2lnode.h_cost/100
 
             # If index is 0, can't move up anymore
-            if not fn_ind:
+            if not f2lnode_ind:
                 return
 
             # The position above node n is int half of (n - 1)
-            fn_up_ind = (fn_ind - 1) // 2
-            fn_up = self.open_set[fn_up_ind]
-            fn_up_val = fn_up.f_cost + fn_up.h_cost/100
+            f2lnode_up_ind = (f2lnode_ind - 1) // 2
+            f2lnode_up = self.open_set[f2lnode_up_ind]
+            f2lnode_up_val = f2lnode_up.f_cost + f2lnode_up.h_cost/100
 
             # Compare values
-            if fn_val < fn_up_val:
-                self._swap(fn_ind, fn_up_ind)
+            if f2lnode_val < f2lnode_up_val:
+                self._swap(f2lnode_ind, f2lnode_up_ind)
             else:
                 return
 
     def _move_down(self):
-            """
-            Sorts the top node down the heap.
-            """
-            set_len = len(self.open_set)
+        """
+        Sorts the top node down the heap.
+        """
+        set_len = len(self.open_set)
 
-            # Don't run if open_set is empty
-            if not set_len:
+        # Don't run if open_set is empty
+        if not set_len:
+            return
+
+        f2lnode = self.open_set[0]
+        f2lnode_val = f2lnode.f_cost + f2lnode.h_cost/100
+
+        while True:
+            f2lnode_ind = self.open_set.index(f2lnode)
+
+            left_ind = 2 * f2lnode_ind + 1
+            right_ind = left_ind + 1
+
+            # Check if left node exists, if not we are finished
+            if set_len > left_ind:
+                left = self.open_set[left_ind]
+                left_val = left.f_cost + left.h_cost/100
+            else:
                 return
 
-            fn = self.open_set[0]
-            fn_val = fn.f_cost + fn.h_cost/100
+            # Check if right node exists
+            if set_len > right_ind:
+                right = self.open_set[right_ind]
+                right_val = right.f_cost + right.h_cost/100
+            else:
+                right = None
 
-            while True:
-                fn_ind = self.open_set.index(fn)
-
-                left_ind = 2 * fn_ind + 1
-                right_ind = left_ind + 1
-
-                # Check if left node exists, if not we are finished
-                if set_len > left_ind:
-                    left = self.open_set[left_ind]
-                    left_val = left.f_cost + left.h_cost/100
-                else:
-                    return
-
-                # Check if right node exists
-                if set_len > right_ind:
-                    right = self.open_set[right_ind]
-                    right_val = right.f_cost + right.h_cost/100
-                else:
-                    right = None
-
-                # Left value must be less and either there is no right node or
-                # the left node is the lower choice
-                if (left_val < fn_val) and \
-                   (right is None or left_val <= right_val):
-                    self._swap(fn_ind, left_ind)
-                elif right is not None and right_val < fn_val:
-                    self._swap(fn_ind, right_ind)
-                else:
-                    return
+            # Left value must be less and either there is no right node or
+            # the left node is the lower choice
+            if (left_val < f2lnode_val) and \
+               (right is None or left_val <= right_val):
+                self._swap(f2lnode_ind, left_ind)
+            elif right is not None and right_val < f2lnode_val:
+                self._swap(f2lnode_ind, right_ind)
+            else:
+                return
 
     def _swap(self, i, j):
         """
@@ -349,102 +381,139 @@ class F2LNode:
     d_color - The color of the Down face
     """
 
-    def __init__(self, cur_perm, goal_perm, slot_perm, slot_turn,
-                 f2l_key, alg, d_color):
+    def __init__(self, cur_perm, goal_perm, f2l_key, alg, d_color,
+                 slot_turn, slot_coord):
         self.d_color = d_color
         self.alg = alg
         self.f2l_key = f2l_key
 
         self.goal_perm = goal_perm
         self.cur_perm = cur_perm
-        self.slot_perm, self.slot_turn = self._slot(slot_perm, slot_turn)
+        self.slot_turn = self._slot(slot_turn, slot_coord)
+        self.rel_goal_perm = self._rel_goal_perm()
 
         # Metrics
         self.flip_penalty = 2 * self._flip_penalty()
-        self.rel_h_cost = self._slot_metric()
-        self.pair_metric = self._pair_metric()
+        self.rel_h_cost, self.d1, self.d2 = self._slot_metric()
+        #self.pair_metric = self._pair_metric()
+        self.pair_metric = 'N/A'
         self.g_cost = len(self.alg)
 
+        #self.h_cost = self._metric() + self.flip_penalty
         self.h_cost = self.rel_h_cost + self.flip_penalty
         self.abs_h_cost = self._metric() + self.flip_penalty
-        self.f_cost = self.h_cost + self.g_cost
+        self.f_cost = self.h_cost + self.g_cost #+ self.pair_metric
 
-    def _slot(self, slot_perm, slot_turn):
-        """
-        Finds the permutation of the slot for the current F2L_pair and the
-        turn in question.
-
-        For example, if the green-orange F2L pair is being solved for a yellow
-        cross, then this keeps track of the slot that the green-orange F2L
-        pair would go into. If there is an L turn, then the slot is now on the
-        U face, but, at this point, only an L' turn would return the slot
-        into it's original position. In this example, it's analogous for an F
-        turn moving the slot to the U face or an L or F' turn moving it to the
-        bottom.
-
-        Paramters:
-        slot_perm - The perm (of two cubies) of the slot of the current F2L
-                    pair
-        slot_turn - The turn that has resulted in slot_perm
-        """
+    def _slot(self, slot_turn, slot_coord):
         if not len(self.alg):
-            return slot_perm, slot_turn
+            return ''
 
-        turns = ['K', 'L', 'E', 'F', 'Q', 'R', 'A', 'B']
-        turn = self.alg[-1]
+        turn_dict = {(-1, 0,  1): ['', 'L', '@', 'K', '', 'F', '#', 'E'],
+                     ( 1, 0,  1): ['', 'R', '$', 'Q', '', 'F', '#', 'E'],
+                     (-1, 0, -1): ['', 'L', '@', 'K', '', 'B', '%', 'A'],
+                     ( 1, 0, -1): ['', 'R', '$', 'Q', '', 'B', '%', 'A']}
+        valid_moves = turn_dict[slot_coord]
 
-        # Slot is in correct place
-        if not slot_turn:
-            # If we have a single side turn, now it's on the U or D face, so
-            # we must update for that
-            if turn in turns:
-                return self.apply_turn(turn, slot_perm), turn
-            # Any other move doesn't change slots position
-            else:
-                return slot_perm, slot_turn
-        # Slot is on the U or D face
-        else:
-            inv_alg = turns[(turns.index(slot_turn) // 2) * 2 +
-                            (not turns.index(slot_turn) % 2)]
-            # If we have a turn that will reverse the turn that place it in
-            # that top face, then the slot is back in its correct face
-            if turn == inv_alg:
-                return {x: self.goal_perm[x] for x in self.f2l_key}, ''
-            # Otherwise, we don't change anything
-            else:
-                return slot_perm, slot_turn
+        # If it is a move that effects the position
+        if self.alg[-1] in valid_moves:
+            # If it doesn't match the move set
+            if slot_turn and valid_moves.index(slot_turn) // 4 != \
+                            valid_moves.index(self.alg[-1]) // 4:
+                return slot_turn
 
-    def _flip_penalty(self):
-        """
-        Counts number of cubies that are in the correct position but are
-        flipped incorrectly.
-        """
-        bad_flip = 0
+            turn_val = valid_moves.index(self.alg[-1]) % 4
+            slot_val = valid_moves.index(slot_turn) % 4
+            new_val = (turn_val + slot_val) % 4
 
-        for stickers, cordlor in self.cur_perm.items():
-            # The 0th element is coords and 1st element is color
-            # So incorrect color but correct coords means it's flipped
-            if (self.goal_perm[stickers][0] == cordlor[0] and
-               self.goal_perm[stickers][1] != cordlor[1]):
-                bad_flip += 1
+            new_turn = valid_moves[4 * (valid_moves.index(slot_turn) // 4) + new_val]
 
-        return bad_flip
+            return new_turn
 
-    def _pair_metric(self):
-        return 0
+        return slot_turn
+
+        # """
+        # Finds the permutation of the slot for the current F2L_pair and the
+        # turn in question.
+
+        # For example, if the green-orange F2L pair is being solved for a yellow
+        # cross, then this keeps track of the slot that the green-orange F2L
+        # pair would go into. If there is an L turn, then the slot is now on the
+        # U face, but, at this point, only an L' turn would return the slot
+        # into it's original position. In this example, it's analogous for an F
+        # turn moving the slot to the U face or an L or F' turn moving it to the
+        # bottom.
+
+        # Paramters:
+        # slot_perm - The perm (of two cubies) of the slot of the current F2L
+        #             pair
+        # slot_turn - The turn that has resulted in slot_perm
+        # """
+        # if not len(self.alg):
+        #     return slot_perm, slot_turn
+
+        # turns = ['K', 'L', 'E', 'F', 'Q', 'R', 'A', 'B']
+        # turn = self.alg[-1]
+
+        # # Slot is in correct place
+        # if not slot_turn:
+        #     # If we have a single side turn, now it's on the U or D face, so
+        #     # we must update for that
+        #     if turn in turns:
+        #         return self.apply_turn(turn, slot_perm), turn
+        #     # Any other move doesn't change slots position
+        #     else:
+        #         print('Do no turn since we recieved turn {}'.format(turn))
+        #         return slot_perm, slot_turn
+        # # Slot is on the U or D face
+        # else:
+        #     inv_alg = turns[(turns.index(slot_turn) // 2) * 2 +
+        #                     (not turns.index(slot_turn) % 2)]
+        #     # If we have a turn that will reverse the turn that placed it in
+        #     # the top face, then the slot is back in its correct face
+        #     if turn == inv_alg:
+        #         return {x: self.goal_perm[x] for x in self.f2l_key}, ''
+        #     # Otherwise, we don't change anything
+        #     else:
+        #         return slot_perm, slot_turn
+
+    def _rel_goal_perm(self):
+        if not self.slot_turn:
+            return self.goal_perm.copy()
+
+        return self.apply_turn(self.slot_turn, self.goal_perm)
 
     def _slot_metric(self):
         """
         The metric but reletive to the slot as determined by self._slot
         """
-        if not len(self.alg):
-            return self._metric()
+        if not len(self.alg) or not self.slot_turn:
+            return self._metric(), 0, 0
 
         # Create a copy of goal_perm and update it with where the slot is
         new_goal_perm = self.goal_perm.copy()
-        new_goal_perm.update(self.slot_perm)
+        new_goal_perm.update(self.rel_goal_perm)
 
-        return self._metric(new_goal_perm)
+        gpi = set([(x, (tuple(y[0]), tuple(y[1]))) for x, y in self.goal_perm.items()])
+        ngpi = set([(x, (tuple(y[0]), tuple(y[1]))) for x, y in new_goal_perm.items()])
+        d1 = dict(set(gpi) - set(ngpi))
+        d2 = dict(set(ngpi) - set(gpi))
+
+        return self._metric(new_goal_perm), d1, d2
+
+    def _pair_metric(self):
+        """
+        Measures the distance between the two pair cubies on the axes of
+        the edge piece.
+        """
+        edge_coord = self.cur_perm[self.f2l_key[0]][0]
+        corner_coord = self.cur_perm[self.f2l_key[1]][0]
+
+        tot_distance = 0
+        for i in range(3):
+            if edge_coord[i]:
+                tot_distance += abs(edge_coord[i] - corner_coord[i])
+
+        return tot_distance
 
     def _metric(self, goal_perm=None):
         """
@@ -458,13 +527,44 @@ class F2LNode:
         tot_distance = 0
 
         for stickers, cordlor in self.cur_perm.items():
-            distance = sum(map(lambda x, y: abs(x - y),
-                               cordlor[0], goal_perm[stickers][0]))
+            ## Regular metric
+            # distance = sum(map(lambda x, y: abs(x - y),
+            #                    cordlor[0], goal_perm[stickers][0]))
+            ## Doubles distance for double turns
+            # distance = sum(map(lambda x, y: abs(x - y)*(1 + abs(x - y)),
+            #                    cordlor[0], goal_perm[stickers][0]))
+            ## Doubles distance for double turns not on the top
+            distance = 0
+            on_top = False
+            if cordlor[0][1] == 1 and goal_perm[stickers][0][1] == 1:
+                on_top = True
+            for n in range(3):
+                diff = abs(cordlor[0][n] - goal_perm[stickers][0][n])
+                if not on_top and diff == 2:
+                    diff = 4
+                distance += diff
             tot_distance += distance
 
         return tot_distance
 
-    def _turn_rotate(self, ttype, side, perm):
+    def _flip_penalty(self):
+        """
+        Counts number of cubies that are in the correct position but are
+        flipped incorrectly.
+        """
+        bad_flip = 0
+
+        for stickers, cordlor in self.cur_perm.items():
+            # The 0th element is coords and 1st element is color
+            # So incorrect color but correct coords means it's flipped
+            if (self.rel_goal_perm[stickers][0] == cordlor[0] and
+                    self.rel_goal_perm[stickers][1] != cordlor[1]):
+                bad_flip += 1
+
+        return bad_flip
+
+    @staticmethod
+    def _turn_rotate(ttype, side, perm):
         """
         Applies a turn to analgous to the Cube class method. Here, a new dict
         is returned instead of updating current perm.

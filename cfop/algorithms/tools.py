@@ -2,6 +2,8 @@
 Contains various useful functions that are used throughout this project.
 '''
 from string import ascii_lowercase, ascii_uppercase
+from random import choice
+
 import numpy as np
 
 
@@ -154,17 +156,17 @@ def dict_to_list(cube_dict):
 
 
 def random_scramble(num_turns, alg_syntax=False):
-    '''
+    """
     Creates a random scramble for a cube. Duplicate moves such as D D' or F F2
     and so on are avoided along with 'sandwich moves' such as L R L2 where the
     meat of the sandwich is the opposite face of the bread.
 
     Parameters:
     num_turns - The length of the algorithm
-    alg_syntax - (default True) If true, the function will return the scramble
+    alg_syntax - (default False) If true, the function will return the scramble
                  as a human-readable algorithm otherwise it will be return as
                  the code syntax
-    '''
+    """
     turn_space = 'UT!LK@FE#DC^RQ$BA%'
 
     duplicate_turn, dupe_opp_turn = '', ''
@@ -173,7 +175,7 @@ def random_scramble(num_turns, alg_syntax=False):
         current_turn_space = turn_space.replace(duplicate_turn, '')
         current_turn_space = current_turn_space.replace(dupe_opp_turn, '')
 
-        turn = np.random.choice(list(current_turn_space))
+        turn = choice(list(current_turn_space))
         alg += turn
 
         # Removes certain turns for the next turn

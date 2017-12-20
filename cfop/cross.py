@@ -4,7 +4,7 @@ cross algorithm via A* pathfinding.
 """
 from collections import deque
 
-from algorithms.alg_dicts import TURN_DICT, PARAM_DICT
+from cfop.algorithms.alg_dicts import TURN_DICT, PARAM_DICT
 
 # So... looking good. Still some problems. Don't want to arbitrarilty restrict
 # it with the 9 move cutoff.
@@ -37,7 +37,7 @@ class Cross:
     def __init__(self, perm):
         self.perm = perm
 
-        self.cross_color = ''.join(self.perm[(0, -1, 0)])
+        self.d_color = ''.join(self.perm[(0, -1, 0)])
         self.init_perm = self._init_perm()
         self.solved_perm = self._solved_perm()
         self.solved_side_colors = self._solved_side_colors()
@@ -52,8 +52,8 @@ class Cross:
         cross_edges = {}
 
         for coord, colors in self.perm.items():
-            # Look at edge pieces with cross_color color
-            if coord.count(0) == 1 and self.cross_color in colors:
+            # Look at edge pieces with d_color color
+            if coord.count(0) == 1 and self.d_color in colors:
                 cross_edges[coord] = colors
 
         return cross_edges
@@ -98,7 +98,7 @@ class Cross:
         A* pathfinding algorithm to solve for the cube's cross.
         """
         cn = CrossNode(self.init_perm, '', self.solved_perm,
-                       self.cross_color, self.solved_side_colors)
+                       self.d_color, self.solved_side_colors)
 
         # Every single layer face turn
         turn_space = 'UT!LK@FE#RQ$BA%DC^'
@@ -155,7 +155,7 @@ class Cross:
                     continue
 
                 cn = CrossNode(new_perm, new_alg, self.solved_perm,
-                               self.cross_color, self.solved_side_colors)
+                               self.d_color, self.solved_side_colors)
                 self._move_up(cn)
 
     def _move_up(self, cn):
@@ -290,13 +290,14 @@ class Cross:
 
 class CrossNode:
     """
-    The class representing a node in the A* algorithm.
+    The class represents a node in the A* algorithm.
 
     The metric from the intial state is defined as the sum of the absolute
-    value of the difference of each of the three coordinates. This metric is
-    found for the one absolute and three relative positions of the cross. This
-    can be imagined like rotating just the side centers and seeing how close
-    the cube is to having a cross.
+    value of the difference of each of the three coordinates. (e.g. the
+    difference between [-1, 1, -1] and [1, 1, 1] is 2 + 0 + 2 = 4]. This metric
+    is found for the one absolute and three relative positions of the cross.
+    This can be imagined like rotating just the side centers and seeing how
+    close the cube is to having a cross.
 
     The absolute measure (abs_h_cost) is used to determine if a cross has been
     found. The relative measure (rel_h_cost) is used with the flip_penatly for
@@ -312,17 +313,17 @@ class CrossNode:
           of the cube
     solved_perm - The color-first dict of the permutation of the edges if they
                    were solved
-    cross_color - The color of the Down face (i.e. of the cross being solved)
+    d_color - The color of the Down face (i.e. of the cross being solved)
     solved_side_colors - A 4-element list of the side colors of the cross in
                          the order: F R D L to use as a reference for relative
                          positions of the current cross edge pieces
     """
 
-    def __init__(self, edge_perm, alg, solved_perm, cross_color,
+    def __init__(self, edge_perm, alg, solved_perm, d_color,
                  solved_side_colors):
         # Constant for every CrossNode object
         self.solved_perm = solved_perm
-        self.cross_color = cross_color
+        self.d_color = d_color
 
         # Constant for each CrossNode object
         self.edge_perm = edge_perm
@@ -347,7 +348,7 @@ class CrossNode:
         cross_edge_dict = {}
         for coord, colors in self.edge_perm.items():
             colors_copy = colors.copy()
-            colors_copy.remove(self.cross_color)
+            colors_copy.remove(self.d_color)
             colors_copy.remove('')
 
             cross_edge_dict[colors_copy[0]] = coord
@@ -364,7 +365,7 @@ class CrossNode:
             # Can only be wrongly flipped if on D or U face
             if coord[1] != 0:
                 # But white sticker isn't on D or U face
-                if self.cross_color in [colors[0], colors[2]]:
+                if self.d_color in [colors[0], colors[2]]:
                     bad_flip += 1
 
         return bad_flip

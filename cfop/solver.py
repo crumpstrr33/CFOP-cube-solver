@@ -1,9 +1,12 @@
 '''
 Contains the Solver class.
 '''
-from cube import Cube
-from cross import Cross
-from algorithms.tools import code_to_alg
+from itertools import permutations
+
+from cfop.cube import Cube
+from cfop.cross import Cross
+from cfop.f2l import F2L
+from cfop.algorithms.tools import code_to_alg
 
 
 class Solver(Cube):
@@ -22,6 +25,7 @@ class Solver(Cube):
     def __init__(self, perm=0):
         super().__init__(perm)
         self.solving_alg = ''
+        self.step = 'scrambled'
 
     @property
     def inspect_alg(self):
@@ -134,7 +138,6 @@ class Solver(Cube):
         """
         cross = Cross(self.perm)
 
-        self.cross_color = cross.cross_color
         self.calg = cross.alg
         self.open_sets = cross.open_sets
         self.closed_sets = cross.closed_sets
@@ -145,8 +148,34 @@ class Solver(Cube):
         self.apply_alg(self.calg)
 
     def solve_f2l(self):
-        # TODO
-        self.falg = ['', '', '', '']
+        side_centers, side_edges = [], []
+        # Get the centers not on the U or D face
+        for coord, color in self.perm.items():
+            if coord.count(0) == 2 and coord[1] == 0:
+                side_centers.append((coord, color))
+        # For each center check with the remaining
+        for n, i in enumerate(side_centers):
+            for j in side_centers[n + 1:]:
+                # If it's not opposite (i.e. j has a value with an abs of 1
+                # as the same element of i)
+                if list(map(abs, i[0])).index(1) != \
+                   list(map(abs, j[0])).index(1):
+                    side_edges.append(''.join(i[1]) + ''.join(j[1]))
+        # Get all 24 orders for solving F2L
+        f2l_orders = list(permutations(side_edges))
+        for f2l_order in f2l_orders:
+            # Solve for each one and continue with the lowest move count one
+            # No point in mocking it up now
+            pass
+
+        self.f2l_pairs = ['go', 'gr', 'bo', 'br']
+        f2l = F2L(self.perm, self.f2l_pairs)
+
+        self.falg = f2l.algs
+        self.open_setss = f2l.open_setss
+        self.closed_setss = f2l.closed_setss
+
+        self.apply_alg(''.join(self.falg))
 
     def solve_oll(self):
         # TODO
