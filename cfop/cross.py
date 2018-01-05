@@ -184,9 +184,9 @@ class Cross:
             else:
                 return
 
-    def _move_do1wn(self):
+    def _move_down(self):
         """
-        Sorts the top node down the tree.
+        Sorts the top node down the heap.
         """
         set_len = len(self.open_set)
 
@@ -194,92 +194,38 @@ class Cross:
         if not set_len:
             return
 
-        # Compare both f_cost and h_cost at same time
-        cn = self.open_set[0]
-        cn_val = cn.f_cost + cn.h_cost/100
+        fn = self.open_set[0]
+        fn_val = fn.f_cost + fn.h_cost/100
 
         while True:
-            cn_ind = self.open_set.index(cn)
+            fn_ind = self.open_set.index(fn)
 
-            # Get info for left lower node, make sure we don't go over index
-            if set_len > 2 * cn_ind + 1:
-                cn_ld_ind = 2 * cn_ind + 1
-                cn_ld = self.open_set[cn_ld_ind]
-                cn_ld_val = cn_ld.f_cost + cn_ld.h_cost/100
-                diff_ld = cn_val - cn_ld_val
-            # We reached botom of tree if it doesn't exist
+            left_ind = 2 * fn_ind + 1
+            right_ind = left_ind + 1
+
+            # Check if left node exists, if not we are finished
+            if set_len > left_ind:
+                left = self.open_set[left_ind]
+                left_val = left.f_cost + left.h_cost/100
             else:
                 return
 
-            # Get info for right lower node
-            if set_len > cn_ld_ind + 1:
-                right_node_exists = True
-
-                cn_rd_ind = cn_ld_ind + 1
-                cn_rd = self.open_set[cn_rd_ind]
-                cn_rd_val = cn_rd.f_cost + cn_rd.h_cost/100
-                diff_rd = cn_val - cn_rd_val
-            # We reached end of list if it doesn't exist
+            # Check if right node exists
+            if set_len > right_ind:
+                right = self.open_set[right_ind]
+                right_val = right.f_cost + right.h_cost/100
             else:
-                right_node_exists = False
+                right = None
 
-            # Swap with left lower node due to f_cost
-            if diff_ld >= 1:
-                self._swap(cn_ind, cn_ld_ind)
-            # Swap with right lower node due to f_cost
-            elif right_node_exists and diff_rd >= 1:
-                self._swap(cn_ind, cn_rd_ind)
-            # Swap with left lower node due to h_cost
-            elif diff_ld > 0:
-                self._swap(cn_ind, cn_ld_ind)
-            # Swap with right lower node due to h_cost
-            elif right_node_exists and diff_rd > 0:
-                self._swap(cn_ind, cn_ld_ind)
+            # Left value must be less and either there is no right node or
+            # the left node is the lower choice
+            if (left_val < fn_val) and \
+                (right is None or left_val <= right_val):
+                self._swap(fn_ind, left_ind)
+            elif right is not None and right_val < fn_val:
+                self._swap(fn_ind, right_ind)
             else:
                 return
-
-    def _move_down(self):
-            """
-            Sorts the top node down the heap.
-            """
-            set_len = len(self.open_set)
-
-            # Don't run if open_set is empty
-            if not set_len:
-                return
-
-            fn = self.open_set[0]
-            fn_val = fn.f_cost + fn.h_cost/100
-
-            while True:
-                fn_ind = self.open_set.index(fn)
-
-                left_ind = 2 * fn_ind + 1
-                right_ind = left_ind + 1
-
-                # Check if left node exists, if not we are finished
-                if set_len > left_ind:
-                    left = self.open_set[left_ind]
-                    left_val = left.f_cost + left.h_cost/100
-                else:
-                    return
-
-                # Check if right node exists
-                if set_len > right_ind:
-                    right = self.open_set[right_ind]
-                    right_val = right.f_cost + right.h_cost/100
-                else:
-                    right = None
-
-                # Left value must be less and either there is no right node or
-                # the left node is the lower choice
-                if (left_val < fn_val) and \
-                   (right is None or left_val <= right_val):
-                    self._swap(fn_ind, left_ind)
-                elif right is not None and right_val < fn_val:
-                    self._swap(fn_ind, right_ind)
-                else:
-                    return
 
     def _swap(self, i, j):
         """
