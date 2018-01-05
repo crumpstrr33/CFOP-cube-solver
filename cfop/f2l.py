@@ -189,12 +189,13 @@ class F2L:
         closed_set = []
 
         # DEBUGGING
-        debug_dict = {'go': alg_to_code("L' U2 B L B' L' U' L"),
-                      'gr': alg_to_code("U2 R2 U2 R' U' R U' R' U R'"),
-                      'bo': alg_to_code("U2 L' B L U L U' L2 B' L"),
-                      'br': alg_to_code("U' R' U' R U2 R' U R U' R' U R")}
+        #print('F2L Pair: {}'.format(f2l_pair))
+        debug_dict = {'go': "?NA", #alg_to_code(""),
+                      'gr': alg_to_code("R' U' R2 U R'"),
+                      'bo': "?NA", #alg_to_code(""),
+                      'br': "?NA"} #alg_to_code("")}
         i = 0
-        t0 = dt.now()
+        #t0 = dt.now()
         ################################################
         while True:
             i += 1
@@ -203,7 +204,7 @@ class F2L:
             current = self.open_set.popleft()
 
             # DEBUGGING
-            if False:#debug_dict[f2l_pair].startswith(current.alg):
+            if False:#debug_dict[f2l_pair].startswith(current.alg) and current.alg:
                 template = '{:>5} ==> F Cost - {:>2} | Abs H Cost - {:>2} |' + \
                            ' H Cost - {:>2} | PM - {:>2} | FP - {:>2} |' + \
                            ' SA - {:>2} | Alg - {}'
@@ -394,15 +395,12 @@ class F2LNode:
 
         # Metrics
         self.flip_penalty = 2 * self._flip_penalty()
-        self.rel_h_cost, self.d1, self.d2 = self._slot_metric()
-        #self.pair_metric = self._pair_metric()
-        self.pair_metric = 'N/A'
+        self.rel_h_cost = self._slot_metric()
         self.g_cost = len(self.alg)
 
-        #self.h_cost = self._metric() + self.flip_penalty
         self.h_cost = self.rel_h_cost + self.flip_penalty
         self.abs_h_cost = self._metric() + self.flip_penalty
-        self.f_cost = self.h_cost + self.g_cost #+ self.pair_metric
+        self.f_cost = self.h_cost + self.g_cost
 
     def _slot(self, slot_turn, slot_coord):
         if not len(self.alg):
@@ -431,122 +429,6 @@ class F2LNode:
 
         return slot_turn
 
-        # """
-        # Finds the permutation of the slot for the current F2L_pair and the
-        # turn in question.
-
-        # For example, if the green-orange F2L pair is being solved for a yellow
-        # cross, then this keeps track of the slot that the green-orange F2L
-        # pair would go into. If there is an L turn, then the slot is now on the
-        # U face, but, at this point, only an L' turn would return the slot
-        # into it's original position. In this example, it's analogous for an F
-        # turn moving the slot to the U face or an L or F' turn moving it to the
-        # bottom.
-
-        # Paramters:
-        # slot_perm - The perm (of two cubies) of the slot of the current F2L
-        #             pair
-        # slot_turn - The turn that has resulted in slot_perm
-        # """
-        # if not len(self.alg):
-        #     return slot_perm, slot_turn
-
-        # turns = ['K', 'L', 'E', 'F', 'Q', 'R', 'A', 'B']
-        # turn = self.alg[-1]
-
-        # # Slot is in correct place
-        # if not slot_turn:
-        #     # If we have a single side turn, now it's on the U or D face, so
-        #     # we must update for that
-        #     if turn in turns:
-        #         return self.apply_turn(turn, slot_perm), turn
-        #     # Any other move doesn't change slots position
-        #     else:
-        #         print('Do no turn since we recieved turn {}'.format(turn))
-        #         return slot_perm, slot_turn
-        # # Slot is on the U or D face
-        # else:
-        #     inv_alg = turns[(turns.index(slot_turn) // 2) * 2 +
-        #                     (not turns.index(slot_turn) % 2)]
-        #     # If we have a turn that will reverse the turn that placed it in
-        #     # the top face, then the slot is back in its correct face
-        #     if turn == inv_alg:
-        #         return {x: self.goal_perm[x] for x in self.f2l_key}, ''
-        #     # Otherwise, we don't change anything
-        #     else:
-        #         return slot_perm, slot_turn
-
-    def _rel_goal_perm(self):
-        if not self.slot_turn:
-            return self.goal_perm.copy()
-
-        return self.apply_turn(self.slot_turn, self.goal_perm)
-
-    def _slot_metric(self):
-        """
-        The metric but reletive to the slot as determined by self._slot
-        """
-        if not len(self.alg) or not self.slot_turn:
-            return self._metric(), 0, 0
-
-        # Create a copy of goal_perm and update it with where the slot is
-        new_goal_perm = self.goal_perm.copy()
-        new_goal_perm.update(self.rel_goal_perm)
-
-        gpi = set([(x, (tuple(y[0]), tuple(y[1]))) for x, y in self.goal_perm.items()])
-        ngpi = set([(x, (tuple(y[0]), tuple(y[1]))) for x, y in new_goal_perm.items()])
-        d1 = dict(set(gpi) - set(ngpi))
-        d2 = dict(set(ngpi) - set(gpi))
-
-        return self._metric(new_goal_perm), d1, d2
-
-    def _pair_metric(self):
-        """
-        Measures the distance between the two pair cubies on the axes of
-        the edge piece.
-        """
-        edge_coord = self.cur_perm[self.f2l_key[0]][0]
-        corner_coord = self.cur_perm[self.f2l_key[1]][0]
-
-        tot_distance = 0
-        for i in range(3):
-            if edge_coord[i]:
-                tot_distance += abs(edge_coord[i] - corner_coord[i])
-
-        return tot_distance
-
-    def _metric(self, goal_perm=None):
-        """
-        Sums the difference of each coordinate dimension
-
-        Parameters:
-        goal_perm - (default None) The permutation to compare self.cur_perm
-                    against. Defaults to self.goal_perm.
-        """
-        goal_perm = goal_perm or self.goal_perm
-        tot_distance = 0
-
-        for stickers, cordlor in self.cur_perm.items():
-            ## Regular metric
-            # distance = sum(map(lambda x, y: abs(x - y),
-            #                    cordlor[0], goal_perm[stickers][0]))
-            ## Doubles distance for double turns
-            # distance = sum(map(lambda x, y: abs(x - y)*(1 + abs(x - y)),
-            #                    cordlor[0], goal_perm[stickers][0]))
-            ## Doubles distance for double turns not on the top
-            distance = 0
-            on_top = False
-            if cordlor[0][1] == 1 and goal_perm[stickers][0][1] == 1:
-                on_top = True
-            for n in range(3):
-                diff = abs(cordlor[0][n] - goal_perm[stickers][0][n])
-                if not on_top and diff == 2:
-                    diff = 4
-                distance += diff
-            tot_distance += distance
-
-        return tot_distance
-
     def _flip_penalty(self):
         """
         Counts number of cubies that are in the correct position but are
@@ -562,6 +444,46 @@ class F2LNode:
                 bad_flip += 1
 
         return bad_flip
+
+    def _slot_metric(self):
+        """
+        The metric but reletive to the slot as determined by self._slot
+        """
+        if not len(self.alg) or not self.slot_turn:
+            return self._metric()
+
+        # Create a copy of goal_perm and update it with where the slot is
+        new_goal_perm = self.goal_perm.copy()
+        new_goal_perm.update(self.rel_goal_perm)
+
+        return self._metric(new_goal_perm)
+
+    def _rel_goal_perm(self):
+        if not self.slot_turn:
+            return self.goal_perm.copy()
+
+        return self.apply_turn(self.slot_turn, self.goal_perm)
+
+    def _metric(self, goal_perm=None):
+        """
+        Sums the difference of each coordinate dimension
+
+        Parameters:
+        goal_perm - (default None) The permutation to compare self.cur_perm
+                    against. Defaults to self.goal_perm.
+        """
+        goal_perm = goal_perm or self.goal_perm
+        tot_distance = 0
+
+        for stickers, cordlor in self.cur_perm.items():
+            ## Regular metric
+            distance = 0
+            for n in range(3):
+                diff = abs(cordlor[0][n] - goal_perm[stickers][0][n])
+                distance += diff
+            tot_distance += distance
+
+        return tot_distance
 
     @staticmethod
     def _turn_rotate(ttype, side, perm):
