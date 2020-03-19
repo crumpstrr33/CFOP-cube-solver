@@ -3,7 +3,7 @@ Contains the Cube class.
 """
 from itertools import product
 import matplotlib.pyplot as plt
-from numpy import meshgrid
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 from cfop.algorithms.tools import alg_to_code
@@ -36,7 +36,7 @@ class Cube:
     perm - (default 0) The permuation of the cube as described above. If no
            perm is given, a solved cube is assumed with a white Up face and
            green Front face. Perm can also be given as a dict that does not
-           need to be converted
+           need to be converted.
     """
 
     def __init__(self, perm=0):
@@ -205,8 +205,8 @@ class Cube:
         r - (default crimson) The color of the red stickers
         o - (default darkorange) The color of the orange stickers
         """
-        X, Y = meshgrid([0, 1], [0, 1])
-        Z = 0.5
+        X, Y = np.meshgrid([0, 1], [0, 1])
+        Z = np.array([[0.5, 0.5], [0.5, 0.5]])
 
         # Creating the color scheme for each cubie
         colors = {'w': w, 'y': y, 'g': g, 'b': b, 'r': r, 'o': o, '': ''}

@@ -20,7 +20,7 @@ def alg_to_code(alg):
        where up - 1, left - 2, front - 3, right - 4, back - 5, down - 6
     6) Middle slices are lowercase for counterclockwise turns and 7 for double
        turns
-    5) Rotations are capatlized for counterclockwise turns and 8, 9, 0 for
+    5) Rotations are capitalized for counterclockwise turns and 8, 9, 0 for
        double x, y and z rotations respectively
 
     Parameters:
@@ -131,8 +131,8 @@ def dict_to_list(cube_dict):
     """
     perm = np.zeros((6, 3, 3)).astype(str)
 
-    # Create 6x3x3 lsit of the stickers, just the reverse of what is done in
-    # the Cube class
+    # Create 6x3x3 list of the stickers, just the reverse of what is done in
+    # the Cube class. Yeah, this is ugly but it is concise and works.
     for cubie in cube_dict:
         if cubie[0] == 1:
             perm[3][abs(cubie[1] - 1)][abs(cubie[2] - 1)] = cube_dict[cubie][0]
@@ -155,14 +155,15 @@ def dict_to_list(cube_dict):
     return str_perm
 
 
-def random_scramble(num_turns, alg_syntax=False):
+def random_scramble(num_turns=20, alg_syntax=False):
     """
     Creates a random scramble for a cube. Duplicate moves such as D D' or F F2
     and so on are avoided along with 'sandwich moves' such as L R L2 where the
     meat of the sandwich is the opposite face of the bread.
 
     Parameters:
-    num_turns - The length of the algorithm
+    num_turns - (default 20) The length of the algorithm. A minimum of 20 turns
+                are needed to maximally scramble the cube (God's number)
     alg_syntax - (default False) If true, the function will return the scramble
                  as a human-readable algorithm otherwise it will be return as
                  the code syntax

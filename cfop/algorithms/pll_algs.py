@@ -46,7 +46,7 @@ def _get_alg_dict(alg_tags):
         # Find the OLL case numbers and make an empty list as the value
         if re.search(r'^[A-Z] Permutation', text):
             if ':' in text:
-                text = re.match(r'[A-Z]', text).group() + text[-1] + ' Permutation'
+                text = re.match(r'[A-Z]', text).group() + text[-1] + ' PLL'
             last_oll = text
             algs_dict[text] = []
         # Fill that empty list the algs for it
